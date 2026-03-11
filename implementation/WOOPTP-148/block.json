@@ -1,0 +1,68 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "jetpack/paypal-payment-buttons",
+	"title": "PayPal Payment Buttons",
+	"description": "Accept payments via PayPal. Create a buy button directly in the editor — no code required.",
+	"keywords": [ "paypal", "payment", "buy", "sell", "commerce", "checkout" ],
+	"category": "earn",
+	"icon": "paypal",
+	"textdomain": "jetpack-paypal-payments",
+	"supports": {
+		"html": false,
+		"multiple": true,
+		"align": [ "wide", "full" ]
+	},
+	"attributes": {
+		"apiManaged": {
+			"type": "boolean",
+			"default": false
+		},
+		"resourceId": {
+			"type": "string",
+			"default": ""
+		},
+		"paymentUrl": {
+			"type": "string",
+			"default": ""
+		},
+		"productName": {
+			"type": "string",
+			"default": ""
+		},
+		"price": {
+			"type": "string",
+			"default": ""
+		},
+		"currency": {
+			"type": "string",
+			"default": "USD"
+		},
+		"productDescription": {
+			"type": "string",
+			"default": ""
+		},
+		"buttonLabel": {
+			"type": "string",
+			"default": "Buy Now"
+		},
+		"buttonType": {
+			"type": "string",
+			"default": ""
+		},
+		"scriptSrc": {
+			"type": "string",
+			"default": ""
+		},
+		"hostedButtonId": {
+			"type": "string",
+			"default": ""
+		},
+		"buttonText": {
+			"type": "string",
+			"default": ""
+		}
+	},
+	"editorScript": "file:../../dist/paypal-payment-buttons/editor.js",
+	"editorStyle": "file:../../dist/paypal-payment-buttons/editor.css"
+}
