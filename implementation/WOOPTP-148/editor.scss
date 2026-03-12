@@ -1,0 +1,137 @@
+/**
+ * PayPal Payment Buttons — Editor Styles (V2 API-driven)
+ *
+ * Styles for the block editor UI: connection form, product creation form,
+ * and button preview.
+ *
+ * @package automattic/jetpack-paypal-payments
+ * @since 0.7.0
+ */
+
+// ─── Connection form ───
+
+.paypal-connect-form {
+	width: 100%;
+	max-width: 400px;
+
+	.components-notice {
+		margin: 0 0 16px;
+	}
+
+	.components-base-control {
+		margin-bottom: 12px;
+	}
+
+	&__actions {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		margin-top: 16px;
+	}
+}
+
+// ─── Button creation / edit form ───
+
+.paypal-button-form {
+	width: 100%;
+	max-width: 500px;
+
+	.components-notice {
+		margin: 0 0 16px;
+	}
+
+	.components-base-control {
+		margin-bottom: 12px;
+	}
+
+	&__price-row {
+		display: flex;
+		gap: 12px;
+
+		// Price field takes less space.
+		> .components-base-control:first-child {
+			flex: 1;
+			max-width: 160px;
+		}
+
+		// Currency selector.
+		> .components-base-control:last-child {
+			flex: 2;
+		}
+	}
+
+	&__actions {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		margin-top: 16px;
+	}
+}
+
+// ─── Button preview (shown after creation) ───
+
+.paypal-button-preview {
+	text-align: center;
+	padding: 24px;
+
+	&__product {
+		margin-bottom: 16px;
+	}
+
+	&__name {
+		display: block;
+		font-size: 16px;
+		font-weight: 600;
+		color: #1d2327;
+		margin-bottom: 4px;
+	}
+
+	&__price {
+		display: block;
+		font-size: 14px;
+		color: #50575e;
+	}
+
+	&__button-wrapper {
+		display: inline-flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+	}
+
+	&__button {
+		display: inline-block;
+		min-width: 186px;
+		padding: 0 32px;
+		height: 42px;
+		border: none;
+		border-radius: 4px;
+		background-color: #ffd140;
+		color: #000000;
+		font-family: "Helvetica Neue", Arial, sans-serif;
+		font-size: 16px;
+		font-weight: 700;
+		line-height: 42px;
+		cursor: default;
+		opacity: 0.9;
+	}
+
+	&__powered-by {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 4px;
+		font-size: 12px;
+		color: #757575;
+
+		img {
+			height: 14px;
+			vertical-align: middle;
+		}
+	}
+
+	&__paypal-logo {
+		height: 14px;
+		vertical-align: middle;
+	}
+}
