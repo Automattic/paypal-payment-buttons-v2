@@ -1,0 +1,144 @@
+/**
+ * PayPal Payment Buttons — Block Editor Styles.
+ *
+ * @package automattic/jetpack-paypal-payments
+ * @since 0.8.0
+ */
+
+.jetpack-paypal-payment-buttons__loading {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 32px;
+	gap: 12px;
+	color: #757575;
+}
+
+/* Connection form */
+.jetpack-paypal-payment-buttons__connect {
+	padding: 24px;
+	border: 1px dashed #c3c4c7;
+	border-radius: 4px;
+	background: #f9f9f9;
+
+	h3 {
+		margin-top: 0;
+		margin-bottom: 8px;
+	}
+
+	p {
+		color: #757575;
+		margin-bottom: 16px;
+	}
+
+	.components-base-control {
+		margin-bottom: 12px;
+	}
+}
+
+/* Creation form */
+.jetpack-paypal-payment-buttons__create-form {
+	padding: 24px;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+
+	h3 {
+		margin-top: 0;
+		margin-bottom: 16px;
+	}
+
+	.components-base-control {
+		margin-bottom: 12px;
+	}
+}
+
+.jetpack-paypal-payment-buttons__price-row {
+	display: flex;
+	gap: 12px;
+
+	> .components-base-control {
+		flex: 1;
+	}
+}
+
+/* Status indicator */
+.jetpack-paypal-payment-buttons__preview-status {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 16px;
+	font-size: 13px;
+	color: #1e1e1e;
+}
+
+.jetpack-paypal-payment-buttons__status-dot {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #757575;
+
+	&--connected {
+		background: #00a32a;
+	}
+}
+
+.jetpack-paypal-payment-buttons__sandbox-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	color: #996800;
+	background: #fcf0e3;
+	border-radius: 3px;
+}
+
+/* Button preview */
+.jetpack-paypal-payment-buttons__preview {
+	padding: 24px;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+}
+
+.jetpack-paypal-payment-buttons__button-preview {
+	text-align: center;
+	padding: 16px 0;
+}
+
+.jetpack-paypal-payment-buttons__button {
+	display: inline-block;
+	padding: 12px 32px;
+	background: #0070ba;
+	color: #fff;
+	border-radius: 4px;
+	text-decoration: none;
+	font-size: 16px;
+	font-weight: 600;
+	cursor: default;
+
+	&:hover {
+		color: #fff;
+	}
+}
+
+.jetpack-paypal-payment-buttons__preview-details {
+	text-align: center;
+	margin-top: 8px;
+	font-size: 13px;
+	color: #757575;
+}
+
+/* Legacy block indicator */
+.jetpack-paypal-payment-buttons__legacy {
+	padding: 24px;
+	border: 1px dashed #c3c4c7;
+	border-radius: 4px;
+	background: #f9f9f9;
+	text-align: center;
+	color: #757575;
+
+	p {
+		margin: 4px 0;
+	}
+}
