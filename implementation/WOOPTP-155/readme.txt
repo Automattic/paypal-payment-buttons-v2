@@ -1,9 +1,9 @@
 === PayPal Payment Buttons ===
-Contributors: automattic
+Contributors: paypal,automattic,woocommerce
 Tags: paypal, payments, buy now, payment buttons, ecommerce
-Requires at least: 6.4
-Tested up to: 6.7
+Requires at least: 6.8
 Requires PHP: 7.4
+Tested up to: 6.9
 Stable tag: 0.8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -18,9 +18,9 @@ PayPal Payment Buttons lets you accept payments on your WordPress site using Pay
 
 * **API-driven button creation** — Fill in product name, price, and currency; the plugin creates a PayPal payment link automatically
 * **PayPal-branded buttons** — Gold PayPal button with optional Debit/Credit Card secondary button, matching PayPal's official design
-* **Live preview** — See exactly how your button will look before publishing
-* **26 currencies supported** — USD, EUR, GBP, JPY, and 22 more
-* **Stacked or single layout** — Choose between a two-button stack or PayPal-only button
+* **Live preview** — See exactly how your button will look before publishing — the frontend renders identically to the editor preview
+* **26 currencies supported** — USD, EUR, GBP, JPY, and 22 more with proper currency symbol formatting
+* **Stacked or single layout** — Choose between a two-button stack (PayPal + Debit/Credit) or PayPal-only button
 * **Secure credential storage** — OAuth credentials are encrypted at rest using AES-256-CBC
 * **Backward compatible** — Existing paste-code buttons continue to work unchanged
 
@@ -28,7 +28,7 @@ PayPal Payment Buttons lets you accept payments on your WordPress site using Pay
 
 1. Connect your PayPal account using API credentials from the PayPal Developer Dashboard
 2. Add the PayPal Payment Buttons block to any post or page
-3. Enter your product details (name, price, currency)
+3. Enter your product details (name, price, currency, and optional description)
 4. Click "Create Button" — the plugin creates a payment link via PayPal's API
 5. Publish your post — visitors see a styled PayPal button that links to checkout
 
@@ -45,7 +45,7 @@ PayPal Payment Buttons lets you accept payments on your WordPress site using Pay
 
 = Requirements =
 
-* WordPress 6.4 or later
+* WordPress 6.8 or later
 * PHP 7.4 or later with OpenSSL extension
 * A PayPal Business or Developer account with API credentials
 
@@ -69,7 +69,7 @@ Yes. Existing buttons created with the paste-code method continue to work exactl
 
 = What currencies are supported? =
 
-USD, EUR, GBP, CAD, AUD, JPY, CHF, SEK, NOK, DKK, NZD, SGD, HKD, MXN, BRL, PLN, CZK, HUF, ILS, MYR, PHP, TWD, THB, INR, CNY, and RUB.
+USD, EUR, GBP, CAD, AUD, JPY, CHF, SEK, NOK, DKK, NZD, SGD, HKD, MXN, BRL, PLN, CZK, HUF, ILS, MYR, PHP, TWD, THB, INR, CNY, and RUB. Each currency displays its proper symbol (e.g., $, €, £, ¥) on both the editor preview and published page.
 
 = Where are my PayPal credentials stored? =
 
@@ -93,18 +93,39 @@ This plugin is designed for standalone PayPal payment buttons on posts and pages
 * **New:** API-driven button creation via PayPal's Pay Links & Buttons API
 * **New:** OAuth 2.0 connection flow with encrypted credential storage (AES-256-CBC)
 * **New:** Live button preview in the block editor with PayPal-branded styling
+* **New:** Frontend rendering matches block editor preview exactly — currency symbols, PayPal logo, product info card, stacked/inline layouts
+* **New:** Product description field with truncation on the published page
 * **New:** Edit/preview mode toggle for existing buttons
 * **New:** Client-side and server-side input validation
 * **New:** Automatic token refresh on expiry with retry logic
 * **New:** Exponential backoff for transient API errors (500/502/503)
 * **New:** PayPal URL domain whitelist for payment link validation
-* **New:** 26 supported currencies
+* **New:** 26 supported currencies with proper symbol formatting
 * **New:** Delete button action in the sidebar
+* **Fixed:** Extract payment_link from HATEOAS links array instead of non-existent top-level field
+* **Fixed:** Align block.json attribute names between editor (JS) and server-side (PHP) registration
+* **Fixed:** Frontend style.css build path (was incorrectly pointing to editor.css)
 * **Improved:** User-friendly error messages for all PayPal API errors
 * **Improved:** Backward compatibility with v0.4.0-alpha paste-code blocks via deprecated.js
 
-= 0.4.0-alpha =
-* Initial paste-code workflow for hosted PayPal buttons
+= 0.3.2 - 2025-11-20 =
+* Tested up to WordPress 6.9.
+* Update package dependencies.
+* Jetpack: Remove getIconColor functions for block icons.
+
+= 0.3.1 - 2025-10-09 =
+* Update package dependencies.
+* Update short description for plugin.
+
+= 0.3.0 - 2025-09-16 =
+* Improve robustness of PayPal Payment Buttons parsing.
+* Remove admin page for PayPal Payment Buttons plugin.
+* Update readme.txt and adds assets for distribution.
+
+= 0.2.0 - 2025-07-25 =
+* Initial release setup and plugin structure.
+* Integration with paypal-payments package for core functionality.
+* Working PayPal Payment Button block with availability data.
 
 == Upgrade Notice ==
 
