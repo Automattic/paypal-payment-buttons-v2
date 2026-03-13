@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-no-bind */
 /**
  * PayPal Payment Buttons — Block Editor Component.
  *
@@ -9,12 +10,12 @@
  * Updated for WOOPTP-151: Client-side validation with inline errors,
  * user-friendly API error mapping, and graceful 404 handling.
  *
- * @package automattic/jetpack-paypal-payments
+ * @package
  * @since 0.8.0
  */
 
-import { __ } from '@wordpress/i18n';
-import { useState, useEffect, useCallback, useMemo } from '@wordpress/element';
+import apiFetch from '@wordpress/api-fetch'; // eslint-disable-line import/no-unresolved
+import { BlockControls, InspectorControls, useBlockProps } from '@wordpress/block-editor';
 import {
 	Button,
 	Notice,
@@ -26,12 +27,8 @@ import {
 	ToolbarButton,
 	ToolbarGroup,
 } from '@wordpress/components';
-import {
-	BlockControls,
-	InspectorControls,
-	useBlockProps,
-} from '@wordpress/block-editor';
-import apiFetch from '@wordpress/api-fetch';
+import { useState, useEffect, useCallback, useMemo } from '@wordpress/element';
+import { __, sprintf } from '@wordpress/i18n';
 import PayPalButtonPreview from './paypal-button-preview';
 
 /**
@@ -70,7 +67,7 @@ const SUPPORTED_CURRENCIES = [
 /**
  * Currency code set for fast lookup.
  */
-const VALID_CURRENCY_CODES = new Set( SUPPORTED_CURRENCIES.map( ( c ) => c.value ) );
+const VALID_CURRENCY_CODES = new Set( SUPPORTED_CURRENCIES.map( c => c.value ) );
 
 /**
  * Validation constants — match server-side limits.
@@ -94,7 +91,7 @@ const API_BASE = '/jetpack/v4/paypal';
 /**
  * Validate a price string.
  *
- * @param {string} value The price value.
+ * @param {string} value - The price value.
  * @return {string|null} Error message or null if valid.
  */
 function validatePrice( value ) {
@@ -109,7 +106,10 @@ function validatePrice( value ) {
 
 	// Check max 2 decimal places.
 	if ( ! /^\d+(\.\d{1,2})?$/.test( value.trim() ) ) {
-		return __( 'Price can have at most 2 decimal places (e.g., "29.99").', 'jetpack-paypal-payments' );
+		return __(
+			'Price can have at most 2 decimal places (e.g., "29.99").',
+			'jetpack-paypal-payments'
+		);
 	}
 
 	return null;
@@ -118,7 +118,7 @@ function validatePrice( value ) {
 /**
  * Validate a product name.
  *
- * @param {string} value The product name.
+ * @param {string} value - The product name.
  * @return {string|null} Error message or null if valid.
  */
 function validateProductName( value ) {
@@ -127,7 +127,11 @@ function validateProductName( value ) {
 	}
 
 	if ( value.length > MAX_NAME_LENGTH ) {
-		return __( `Product name must be ${ MAX_NAME_LENGTH } characters or fewer.`, 'jetpack-paypal-payments' );
+		return sprintf(
+			/* translators: %d: maximum number of characters allowed for the product name */
+			__( 'Product name must be %d characters or fewer.', 'jetpack-paypal-payments' ),
+			MAX_NAME_LENGTH
+		);
 	}
 
 	return null;
@@ -136,12 +140,16 @@ function validateProductName( value ) {
 /**
  * Validate a description (optional field).
  *
- * @param {string} value The description.
+ * @param {string} value - The description.
  * @return {string|null} Error message or null if valid.
  */
 function validateDescription( value ) {
 	if ( value && value.length > MAX_DESCRIPTION_LENGTH ) {
-		return __( `Description must be ${ MAX_DESCRIPTION_LENGTH } characters or fewer.`, 'jetpack-paypal-payments' );
+		return sprintf(
+			/* translators: %d: maximum number of characters allowed for the description */
+			__( 'Description must be %d characters or fewer.', 'jetpack-paypal-payments' ),
+			MAX_DESCRIPTION_LENGTH
+		);
 	}
 
 	return null;
@@ -153,7 +161,7 @@ function validateDescription( value ) {
  * The server-side already returns user-friendly messages, but this
  * provides client-side fallbacks for network errors and edge cases.
  *
- * @param {Object} err The error object from apiFetch.
+ * @param {object} err - The error object from apiFetch.
  * @return {string} User-friendly error message.
  */
 function getUserFriendlyError( err ) {
@@ -176,10 +184,10 @@ function getUserFriendlyError( err ) {
 /**
  * PayPal Payment Buttons edit component.
  *
- * @param {Object}   props               Block props.
- * @param {Object}   props.attributes    Block attributes.
- * @param {Function} props.setAttributes Function to update block attributes.
- * @return {JSX.Element} Block editor UI.
+ * @param {object}   props               - Block props.
+ * @param {object}   props.attributes    - Block attributes.
+ * @param {Function} props.setAttributes - Function to update block attributes.
+ * @return {Element} Block editor UI.
  */
 export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } ) {
 	const {
@@ -224,36 +232,41 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 	/**
 	 * Mark a field as touched (user has interacted with it).
 	 *
-	 * @param {string} field Field name.
+	 * @param {string} field - Field name.
 	 */
-	const markTouched = useCallback( ( field ) => {
-		setTouchedFields( ( prev ) => ( { ...prev, [ field ]: true } ) );
+	const markTouched = useCallback( field => {
+		setTouchedFields( prev => ( { ...prev, [ field ]: true } ) );
 	}, [] );
 
 	/**
 	 * Compute validation errors for all form fields.
 	 * Memoized to avoid re-computing on every render.
 	 */
-	const validationErrors = useMemo( () => ( {
-		productName: validateProductName( productName ),
-		price: validatePrice( price ),
-		productDescription: validateDescription( productDescription ),
-		currencyCode: currencyCode && ! VALID_CURRENCY_CODES.has( currencyCode )
-			? __( 'Unsupported currency.', 'jetpack-paypal-payments' )
-			: null,
-	} ), [ productName, price, productDescription, currencyCode ] );
+	const validationErrors = useMemo(
+		() => ( {
+			productName: validateProductName( productName ),
+			price: validatePrice( price ),
+			productDescription: validateDescription( productDescription ),
+			currencyCode:
+				currencyCode && ! VALID_CURRENCY_CODES.has( currencyCode )
+					? __( 'Unsupported currency.', 'jetpack-paypal-payments' )
+					: null,
+		} ),
+		[ productName, price, productDescription, currencyCode ]
+	);
 
 	/**
 	 * Whether the form is valid (no validation errors on required fields).
 	 */
-	const isFormValid = ! validationErrors.productName && ! validationErrors.price && ! validationErrors.currencyCode;
+	const isFormValid =
+		! validationErrors.productName && ! validationErrors.price && ! validationErrors.currencyCode;
 
 	/**
 	 * Check PayPal connection status on mount.
 	 */
 	useEffect( () => {
 		apiFetch( { path: `${ API_BASE }/connection` } )
-			.then( ( response ) => {
+			.then( response => {
 				setIsConnected( response.connected );
 				setEnvironment( response.environment );
 			} )
@@ -281,13 +294,13 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 				environment,
 			},
 		} )
-			.then( ( response ) => {
+			.then( response => {
 				setIsConnected( response.connected );
 				setEnvironment( response.environment );
 				setClientId( '' );
 				setClientSecret( '' );
 			} )
-			.catch( ( err ) => {
+			.catch( err => {
 				setConnectError( getUserFriendlyError( err ) );
 			} )
 			.finally( () => {
@@ -310,31 +323,39 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 	/**
 	 * Build the line_items payload from current attributes.
 	 *
-	 * @return {Object} API request data.
+	 * @return {object} API request data.
 	 */
-	const buildRequestData = useCallback( () => ( {
-		type: 'BUY_NOW',
-		integration_mode: 'LINK',
-		reusable: 'MULTIPLE',
-		line_items: [
-			{
-				name: productName,
-				unit_amount: {
-					currency_code: currencyCode || 'USD',
-					value: price,
+	const buildRequestData = useCallback(
+		() => ( {
+			type: 'BUY_NOW',
+			integration_mode: 'LINK',
+			reusable: 'MULTIPLE',
+			line_items: [
+				{
+					name: productName,
+					unit_amount: {
+						currency_code: currencyCode || 'USD',
+						value: price,
+					},
+					...( productDescription ? { description: productDescription } : {} ),
 				},
-				...( productDescription ? { description: productDescription } : {} ),
-			},
-		],
-		...( returnUrl ? { return_url: returnUrl } : {} ),
-	} ), [ productName, price, currencyCode, productDescription, returnUrl ] );
+			],
+			...( returnUrl ? { return_url: returnUrl } : {} ),
+		} ),
+		[ productName, price, currencyCode, productDescription, returnUrl ]
+	);
 
 	/**
 	 * Create a PayPal payment button via the API.
 	 */
 	const handleCreateButton = useCallback( () => {
 		// Mark all fields as touched to show any remaining errors.
-		setTouchedFields( { productName: true, price: true, currencyCode: true, productDescription: true } );
+		setTouchedFields( {
+			productName: true,
+			price: true,
+			currencyCode: true,
+			productDescription: true,
+		} );
 
 		if ( ! isFormValid ) {
 			return;
@@ -349,19 +370,17 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 			method: 'POST',
 			data: buildRequestData(),
 		} )
-			.then( ( response ) => {
+			.then( response => {
 				setAttributes( {
 					isApiManaged: true,
 					resourceId: response.id,
 					paymentLink: response.payment_link,
 				} );
-				setSuccessMessage(
-					__( 'PayPal button created successfully!', 'jetpack-paypal-payments' )
-				);
+				setSuccessMessage( __( 'PayPal button created successfully!', 'jetpack-paypal-payments' ) );
 				setIsEditing( false );
 				setTouchedFields( {} );
 			} )
-			.catch( ( err ) => {
+			.catch( err => {
 				setError( getUserFriendlyError( err ) );
 			} )
 			.finally( () => {
@@ -378,7 +397,12 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 		}
 
 		// Mark all fields as touched to show any remaining errors.
-		setTouchedFields( { productName: true, price: true, currencyCode: true, productDescription: true } );
+		setTouchedFields( {
+			productName: true,
+			price: true,
+			currencyCode: true,
+			productDescription: true,
+		} );
 
 		if ( ! isFormValid ) {
 			return;
@@ -393,17 +417,15 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 			method: 'PUT',
 			data: buildRequestData(),
 		} )
-			.then( ( response ) => {
+			.then( response => {
 				setAttributes( {
 					paymentLink: response.payment_link || paymentLink,
 				} );
-				setSuccessMessage(
-					__( 'PayPal button updated successfully!', 'jetpack-paypal-payments' )
-				);
+				setSuccessMessage( __( 'PayPal button updated successfully!', 'jetpack-paypal-payments' ) );
 				setIsEditing( false );
 				setTouchedFields( {} );
 			} )
-			.catch( ( err ) => {
+			.catch( err => {
 				const errorMessage = getUserFriendlyError( err );
 
 				// If the resource was not found (404), clear stale state and prompt re-creation.
@@ -414,7 +436,10 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 						paymentLink: undefined,
 					} );
 					setError(
-						__( 'This button no longer exists on PayPal. Please create a new one.', 'jetpack-paypal-payments' )
+						__(
+							'This button no longer exists on PayPal. Please create a new one.',
+							'jetpack-paypal-payments'
+						)
 					);
 				} else {
 					setError( errorMessage );
@@ -447,11 +472,9 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 					paymentLink: undefined,
 				} );
 				setIsEditing( true );
-				setSuccessMessage(
-					__( 'PayPal button deleted.', 'jetpack-paypal-payments' )
-				);
+				setSuccessMessage( __( 'PayPal button deleted.', 'jetpack-paypal-payments' ) );
 			} )
-			.catch( ( err ) => {
+			.catch( err => {
 				// If already deleted (404), clear state anyway.
 				if ( err.code === 'paypal_api_resource_not_found' || err.data?.status === 404 ) {
 					setAttributes( {
@@ -483,7 +506,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 			<div { ...blockProps }>
 				<div className="jetpack-paypal-payment-buttons__loading">
 					<Spinner />
-					<p>{ __( 'Checking PayPal connection…', 'jetpack-paypal-payments' ) }</p>
+					<p>{ __( 'Checking PayPal connection\u2026', 'jetpack-paypal-payments' ) }</p>
 				</div>
 			</div>
 		);
@@ -495,7 +518,10 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 			<div { ...blockProps }>
 				<div className="jetpack-paypal-payment-buttons__legacy">
 					<p>
-						{ __( 'This PayPal button uses the legacy paste-code format.', 'jetpack-paypal-payments' ) }
+						{ __(
+							'This PayPal button uses the legacy paste-code format.',
+							'jetpack-paypal-payments'
+						) }
 					</p>
 					<p>
 						{ __( 'It will continue to work as-is on the frontend.', 'jetpack-paypal-payments' ) }
@@ -507,12 +533,12 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 							label={ __( 'Button Layout', 'jetpack-paypal-payments' ) }
 							value={ buttonType }
 							options={ BUTTON_TYPE_OPTIONS }
-							onChange={ ( value ) => setAttributes( { buttonType: value } ) }
+							onChange={ value => setAttributes( { buttonType: value } ) }
 						/>
 						<TextControl
 							label={ __( 'Button Text', 'jetpack-paypal-payments' ) }
 							value={ buttonText }
-							onChange={ ( value ) => setAttributes( { buttonText: value } ) }
+							onChange={ value => setAttributes( { buttonText: value } ) }
 						/>
 					</PanelBody>
 				</InspectorControls>
@@ -543,7 +569,10 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 						label={ __( 'Client ID', 'jetpack-paypal-payments' ) }
 						value={ clientId }
 						onChange={ setClientId }
-						help={ __( 'From PayPal Developer Dashboard → Apps & Credentials.', 'jetpack-paypal-payments' ) }
+						help={ __(
+							'From PayPal Developer Dashboard \u2192 Apps & Credentials.',
+							'jetpack-paypal-payments'
+						) }
 					/>
 					<TextControl
 						label={ __( 'Client Secret', 'jetpack-paypal-payments' ) }
@@ -567,9 +596,8 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 						disabled={ isConnecting || ! clientId || ! clientSecret }
 					>
 						{ isConnecting
-							? __( 'Connecting…', 'jetpack-paypal-payments' )
-							: __( 'Connect PayPal', 'jetpack-paypal-payments' )
-						}
+							? __( 'Connecting\u2026', 'jetpack-paypal-payments' )
+							: __( 'Connect PayPal', 'jetpack-paypal-payments' ) }
 					</Button>
 				</div>
 			</div>
@@ -604,12 +632,12 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 					label={ __( 'Button Layout', 'jetpack-paypal-payments' ) }
 					value={ buttonType }
 					options={ BUTTON_TYPE_OPTIONS }
-					onChange={ ( value ) => setAttributes( { buttonType: value } ) }
+					onChange={ value => setAttributes( { buttonType: value } ) }
 				/>
 				<TextControl
 					label={ __( 'Button Text', 'jetpack-paypal-payments' ) }
 					value={ buttonText || '' }
-					onChange={ ( value ) => setAttributes( { buttonText: value } ) }
+					onChange={ value => setAttributes( { buttonText: value } ) }
 				/>
 			</PanelBody>
 
@@ -619,12 +647,10 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 					initialOpen={ false }
 				>
 					<p>
-						{ __( 'Resource ID:', 'jetpack-paypal-payments' ) }{ ' ' }
-						<code>{ resourceId }</code>
+						{ __( 'Resource ID:', 'jetpack-paypal-payments' ) } <code>{ resourceId }</code>
 					</p>
 					<p>
-						{ __( 'Environment:', 'jetpack-paypal-payments' ) }{ ' ' }
-						<strong>{ environment }</strong>
+						{ __( 'Environment:', 'jetpack-paypal-payments' ) } <strong>{ environment }</strong>
 					</p>
 					<div style={ { display: 'flex', gap: '8px', marginTop: '12px' } }>
 						<Button
@@ -635,11 +661,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 						>
 							{ __( 'Delete Button', 'jetpack-paypal-payments' ) }
 						</Button>
-						<Button
-							variant="secondary"
-							isDestructive
-							onClick={ handleDisconnect }
-						>
+						<Button variant="secondary" isDestructive onClick={ handleDisconnect }>
 							{ __( 'Disconnect', 'jetpack-paypal-payments' ) }
 						</Button>
 					</div>
@@ -652,14 +674,9 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 					initialOpen={ false }
 				>
 					<p>
-						{ __( 'Environment:', 'jetpack-paypal-payments' ) }{ ' ' }
-						<strong>{ environment }</strong>
+						{ __( 'Environment:', 'jetpack-paypal-payments' ) } <strong>{ environment }</strong>
 					</p>
-					<Button
-						variant="secondary"
-						isDestructive
-						onClick={ handleDisconnect }
-					>
+					<Button variant="secondary" isDestructive onClick={ handleDisconnect }>
 						{ __( 'Disconnect PayPal', 'jetpack-paypal-payments' ) }
 					</Button>
 				</PanelBody>
@@ -731,8 +748,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 				<h3>
 					{ hasButton
 						? __( 'Edit PayPal Button', 'jetpack-paypal-payments' )
-						: __( 'Create PayPal Button', 'jetpack-paypal-payments' )
-					}
+						: __( 'Create PayPal Button', 'jetpack-paypal-payments' ) }
 				</h3>
 
 				{ error && (
@@ -750,18 +766,20 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 				<TextControl
 					label={ __( 'Product Name', 'jetpack-paypal-payments' ) }
 					value={ productName || '' }
-					onChange={ ( value ) => setAttributes( { productName: value } ) }
+					onChange={ value => setAttributes( { productName: value } ) }
 					onBlur={ () => markTouched( 'productName' ) }
 					placeholder={ __( 'e.g., Premium Widget', 'jetpack-paypal-payments' ) }
 					help={
 						touchedFields.productName && validationErrors.productName
 							? undefined
-							: __( `Max ${ MAX_NAME_LENGTH } characters.`, 'jetpack-paypal-payments' )
+							: sprintf(
+									/* translators: %d: maximum number of characters allowed */
+									__( 'Max %d characters.', 'jetpack-paypal-payments' ),
+									MAX_NAME_LENGTH
+							  )
 					}
 					className={
-						touchedFields.productName && validationErrors.productName
-							? 'has-error'
-							: undefined
+						touchedFields.productName && validationErrors.productName ? 'has-error' : undefined
 					}
 				/>
 				{ touchedFields.productName && validationErrors.productName && (
@@ -775,17 +793,13 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 						<TextControl
 							label={ __( 'Price', 'jetpack-paypal-payments' ) }
 							value={ price || '' }
-							onChange={ ( value ) => setAttributes( { price: value } ) }
+							onChange={ value => setAttributes( { price: value } ) }
 							onBlur={ () => markTouched( 'price' ) }
 							type="number"
 							min="0.01"
 							step="0.01"
 							placeholder="29.99"
-							className={
-								touchedFields.price && validationErrors.price
-									? 'has-error'
-									: undefined
-							}
+							className={ touchedFields.price && validationErrors.price ? 'has-error' : undefined }
 						/>
 						{ touchedFields.price && validationErrors.price && (
 							<p className="jetpack-paypal-payment-buttons__field-error">
@@ -797,19 +811,26 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 						label={ __( 'Currency', 'jetpack-paypal-payments' ) }
 						value={ currencyCode || 'USD' }
 						options={ SUPPORTED_CURRENCIES }
-						onChange={ ( value ) => setAttributes( { currencyCode: value } ) }
+						onChange={ value => setAttributes( { currencyCode: value } ) }
 					/>
 				</div>
 
 				<TextareaControl
 					label={ __( 'Description (optional)', 'jetpack-paypal-payments' ) }
 					value={ productDescription || '' }
-					onChange={ ( value ) => setAttributes( { productDescription: value } ) }
+					onChange={ value => setAttributes( { productDescription: value } ) }
 					onBlur={ () => markTouched( 'productDescription' ) }
 					help={
 						touchedFields.productDescription && validationErrors.productDescription
 							? undefined
-							: __( `Shown to customers at checkout. Max ${ MAX_DESCRIPTION_LENGTH } characters.`, 'jetpack-paypal-payments' )
+							: sprintf(
+									/* translators: %d: maximum number of characters allowed */
+									__(
+										'Shown to customers at checkout. Max %d characters.',
+										'jetpack-paypal-payments'
+									),
+									MAX_DESCRIPTION_LENGTH
+							  )
 					}
 					className={
 						touchedFields.productDescription && validationErrors.productDescription
@@ -826,7 +847,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 				<TextControl
 					label={ __( 'Return URL (optional)', 'jetpack-paypal-payments' ) }
 					value={ returnUrl || '' }
-					onChange={ ( value ) => setAttributes( { returnUrl: value } ) }
+					onChange={ value => setAttributes( { returnUrl: value } ) }
 					type="url"
 					help={ __( 'Redirect customers here after payment.', 'jetpack-paypal-payments' ) }
 				/>
@@ -838,12 +859,9 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 						isBusy={ isCreating }
 						disabled={ isCreating || ! isFormValid }
 					>
-						{ isCreating
-							? __( 'Saving…', 'jetpack-paypal-payments' )
-							: hasButton
-								? __( 'Update Button', 'jetpack-paypal-payments' )
-								: __( 'Create Button', 'jetpack-paypal-payments' )
-						}
+						{ isCreating && __( 'Saving\u2026', 'jetpack-paypal-payments' ) }
+						{ ! isCreating && hasButton && __( 'Update Button', 'jetpack-paypal-payments' ) }
+						{ ! isCreating && ! hasButton && __( 'Create Button', 'jetpack-paypal-payments' ) }
 					</Button>
 
 					{ hasButton && (
