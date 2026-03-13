@@ -6,7 +6,7 @@
  * Without these entries, editing a post with a legacy block would show
  * "This block contains unexpected or invalid content."
  *
- * @package automattic/jetpack-paypal-payments
+ * @package
  * @since 0.8.0
  */
 
@@ -20,9 +20,10 @@ import { useBlockProps } from '@wordpress/block-editor';
  * the div on the frontend.
  *
  * Markup produced:
+ * @example
  * <div class="wp-block-jetpack-paypal-payment-buttons">
- *   <div class="jetpack-paypal-button jetpack-paypal-button--stacked"
- *        id="HOSTED_BUTTON_ID"></div>
+ * <div class="jetpack-paypal-button jetpack-paypal-button--stacked"
+ * id="HOSTED_BUTTON_ID"></div>
  * </div>
  */
 const v040Alpha = {
@@ -47,14 +48,13 @@ const v040Alpha = {
 	/**
 	 * Determine if a block's attributes match this deprecated version.
 	 *
-	 * @param {Object} attributes Block attributes.
+	 * @param {object} attributes - Block attributes.
 	 * @return {boolean} True if this is a v0.4.0-alpha block.
 	 */
 	isEligible( attributes ) {
 		// Legacy block: has scriptSrc/hostedButtonId but no isApiManaged flag.
-		return (
-			! attributes.isApiManaged &&
-			( attributes.scriptSrc || attributes.hostedButtonId )
+		return Boolean(
+			! attributes.isApiManaged && ( attributes.scriptSrc || attributes.hostedButtonId )
 		);
 	},
 
@@ -64,8 +64,8 @@ const v040Alpha = {
 	 * Adds `isApiManaged: false` so the new save function takes the
 	 * correct legacy rendering path. All other attributes pass through.
 	 *
-	 * @param {Object} attributes Old block attributes.
-	 * @return {Object} Migrated attributes.
+	 * @param {object} attributes - Old block attributes.
+	 * @return {object} Migrated attributes.
 	 */
 	migrate( attributes ) {
 		return {
@@ -80,9 +80,9 @@ const v040Alpha = {
 	 * Must reproduce the exact HTML that was stored in the database
 	 * so WordPress block validation can match and migrate.
 	 *
-	 * @param {Object} props            Block props.
-	 * @param {Object} props.attributes Block attributes.
-	 * @return {JSX.Element} Saved block markup.
+	 * @param {object} props            - Block props.
+	 * @param {object} props.attributes - Block attributes.
+	 * @return {Element} Saved block markup.
 	 */
 	save( { attributes } ) {
 		const { buttonType, hostedButtonId } = attributes;

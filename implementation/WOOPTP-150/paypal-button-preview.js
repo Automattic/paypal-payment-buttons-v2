@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-no-bind */
 /**
  * PayPal Button Preview Component.
  *
@@ -5,7 +6,7 @@
  * Visually matches the frontend PayPal button rendering so merchants see
  * a WYSIWYG representation of what visitors will see on the published page.
  *
- * @package automattic/jetpack-paypal-payments
+ * @package
  * @since 0.8.0
  */
 
@@ -14,7 +15,7 @@ import { __ } from '@wordpress/i18n';
 /**
  * PayPal logo SVG rendered inline to avoid external requests in the editor.
  *
- * @return {JSX.Element} PayPal logo SVG.
+ * @return {Element} PayPal logo SVG.
  */
 function PayPalLogo() {
 	return (
@@ -89,8 +90,8 @@ const CURRENCY_SYMBOLS = {
 /**
  * Format a price with currency symbol.
  *
- * @param {string} priceValue    The price value string.
- * @param {string} currencyCode  The ISO currency code.
+ * @param {string} priceValue   - The price value string.
+ * @param {string} currencyCode - The ISO currency code.
  * @return {string} Formatted price string.
  */
 function formatPrice( priceValue, currencyCode ) {
@@ -104,15 +105,15 @@ function formatPrice( priceValue, currencyCode ) {
  * Renders a styled button that visually matches the PayPal-branded button
  * appearance on the frontend. Clicking is disabled in the editor.
  *
- * @param {Object} props                    Component props.
- * @param {string} props.buttonText         Text displayed on the button.
- * @param {string} props.buttonType         Layout type: 'stacked' or 'single'.
- * @param {string} props.productName        Product name to display.
- * @param {string} props.price              Price value string.
- * @param {string} props.currencyCode       ISO currency code.
- * @param {string} props.productDescription Optional product description.
- * @param {string} props.paymentLink        PayPal payment URL.
- * @return {JSX.Element} Button preview element.
+ * @param {object} props                    - Component props.
+ * @param {string} props.buttonText         - Text displayed on the button.
+ * @param {string} props.buttonType         - Layout type: 'stacked' or 'single'.
+ * @param {string} props.productName        - Product name to display.
+ * @param {string} props.price              - Price value string.
+ * @param {string} props.currencyCode       - ISO currency code.
+ * @param {string} props.productDescription - Optional product description.
+ * @param {string} props.paymentLink        - PayPal payment URL.
+ * @return {Element} Button preview element.
  */
 export default function PayPalButtonPreview( {
 	buttonText,
@@ -130,9 +131,7 @@ export default function PayPalButtonPreview( {
 			{ /* Product info card */ }
 			<div className="jetpack-paypal-button-preview__product">
 				<div className="jetpack-paypal-button-preview__product-info">
-					<span className="jetpack-paypal-button-preview__product-name">
-						{ productName }
-					</span>
+					<span className="jetpack-paypal-button-preview__product-name">{ productName }</span>
 					{ productDescription && (
 						<span className="jetpack-paypal-button-preview__product-description">
 							{ productDescription }
@@ -153,7 +152,7 @@ export default function PayPalButtonPreview( {
 				<a
 					href={ paymentLink }
 					className="jetpack-paypal-button-preview__paypal-button"
-					onClick={ ( e ) => e.preventDefault() }
+					onClick={ e => e.preventDefault() }
 					role="button"
 					tabIndex={ -1 }
 				>
@@ -167,7 +166,7 @@ export default function PayPalButtonPreview( {
 					<a
 						href={ paymentLink }
 						className="jetpack-paypal-button-preview__debit-button"
-						onClick={ ( e ) => e.preventDefault() }
+						onClick={ e => e.preventDefault() }
 						role="button"
 						tabIndex={ -1 }
 					>
@@ -181,9 +180,7 @@ export default function PayPalButtonPreview( {
 				<span className="jetpack-paypal-button-preview__link-label">
 					{ __( 'Payment link:', 'jetpack-paypal-payments' ) }
 				</span>
-				<code className="jetpack-paypal-button-preview__link-url">
-					{ paymentLink }
-				</code>
+				<code className="jetpack-paypal-button-preview__link-url">{ paymentLink }</code>
 			</div>
 		</div>
 	);
