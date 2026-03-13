@@ -13,7 +13,7 @@
 			"step": "installPlugin",
 			"pluginData": {
 				"resource": "url",
-				"url": "https://github.com/Automattic/paypal-payment-buttons-v2/releases/download/v0.3.2-playground/paypal-payment-buttons.zip",
+				"url": "https://github.com/Automattic/paypal-payment-buttons-v2/releases/download/v0.4.0-playground/paypal-payment-buttons.zip",
 				"caption": "Installing PayPal Payment Buttons"
 			},
 			"options": {
@@ -39,23 +39,23 @@
 			"step": "setSiteOptions",
 			"options": {
 				"blogname": "PayPal Payment Buttons V2 Demo",
-				"blogdescription": "WordCamp Asia 2026 — Jetpack 15.7 Preview",
+				"blogdescription": "WordCamp Asia 2026 — Jetpack 15.7 Preview (v0.4.0)",
 				"permalink_structure": "/%year%/%monthnum%/%day%/%postname%/",
-				"jetpack_paypal_payment_buttons_environment": "sandbox",
+				"jetpack_paypal_payment_buttons_environment": "production",
 				"jetpack_paypal_payment_buttons_credentials": "a:4:{s:9:\"client_id\";s:80:\"AXBOqFgtrx_-r_54BcViYWfAwr6wLsqwg1W9T816UK72z5nfvaSZ0jlfLWC5ok-kH4sDCs8EjD7bSyut\";s:13:\"client_secret\";s:80:\"EJVcn22Mvwc07PP3OzUEn5aCOQ8DYvqQ8cbNGgrWw3oXLOoyPRIxEBakHQc4nz6CCYB6hKBYEtaaH325\";s:4:\"hash\";s:32:\"552489cd8bbc2cde881447d1b779c2e6\";s:9:\"stored_at\";i:1773378117;}"
 			}
 		},
 		{
 			"step": "runPHP",
-			"code": "<?php require_once 'wordpress/wp-load.php'; wp_insert_post(array('post_title' => 'PayPal Button — Stacked Layout', 'post_name' => 'paypal-stacked', 'post_content' => '<!-- wp:jetpack/paypal-payment-buttons {\"isApiManaged\":true,\"resourceId\":\"PLB-3A6ADHXLFVSA\",\"paymentLink\":\"https://www.sandbox.paypal.com/ncp/payment/PLB-3A6ADHXLFVSA\",\"productName\":\"Premium Widget\",\"price\":\"29.99\",\"currencyCode\":\"USD\",\"productDescription\":\"A premium widget with all the features you need.\",\"buttonType\":\"stacked\"} /-->\n\n<!-- wp:paragraph -->\n<p>This is an API-managed PayPal button created via the Pay Links &amp; Buttons API. It renders a gold PayPal button with a secondary Debit/Credit Card option.</p>\n<!-- /wp:paragraph -->', 'post_status' => 'publish', 'post_type' => 'post')); ?>"
+			"code": "<?php require_once 'wordpress/wp-load.php'; wp_insert_post(array('post_title' => 'PayPal Button — Stacked Layout', 'post_name' => 'paypal-stacked', 'post_content' => '<!-- wp:jetpack/paypal-payment-buttons {\"isApiManaged\":true,\"resourceId\":\"PLB-3A6ADHXLFVSA\",\"paymentLink\":\"https://www.paypal.com/ncp/payment/PLB-3A6ADHXLFVSA\",\"productName\":\"Premium Widget\",\"price\":\"29.99\",\"currencyCode\":\"USD\",\"productDescription\":\"A premium widget with all the features you need.\",\"buttonType\":\"stacked\"} /-->\n\n<!-- wp:paragraph -->\n<p>This is an API-managed PayPal button created via the Pay Links &amp; Buttons API. It renders a gold PayPal button with a secondary Debit/Credit Card option.</p>\n<!-- /wp:paragraph -->', 'post_status' => 'publish', 'post_type' => 'post')); ?>"
 		},
 		{
 			"step": "runPHP",
-			"code": "<?php require_once 'wordpress/wp-load.php'; wp_insert_post(array('post_title' => 'PayPal Button — Single Layout', 'post_name' => 'paypal-single', 'post_content' => '<!-- wp:jetpack/paypal-payment-buttons {\"isApiManaged\":true,\"resourceId\":\"PLB-ZY8X244HBWKU\",\"paymentLink\":\"https://www.sandbox.paypal.com/ncp/payment/PLB-ZY8X244HBWKU\",\"productName\":\"Basic Plan\",\"price\":\"9.99\",\"currencyCode\":\"USD\",\"productDescription\":\"Monthly subscription to the basic plan.\",\"buttonType\":\"single\"} /-->\n\n<!-- wp:paragraph -->\n<p>This button uses the single layout — only the PayPal button, no secondary Debit/Credit Card option.</p>\n<!-- /wp:paragraph -->', 'post_status' => 'publish', 'post_type' => 'post')); ?>"
+			"code": "<?php require_once 'wordpress/wp-load.php'; wp_insert_post(array('post_title' => 'PayPal Button — Single Layout', 'post_name' => 'paypal-single', 'post_content' => '<!-- wp:jetpack/paypal-payment-buttons {\"isApiManaged\":true,\"resourceId\":\"PLB-ZY8X244HBWKU\",\"paymentLink\":\"https://www.paypal.com/ncp/payment/PLB-ZY8X244HBWKU\",\"productName\":\"Basic Plan\",\"price\":\"9.99\",\"currencyCode\":\"USD\",\"productDescription\":\"Monthly subscription to the basic plan.\",\"buttonType\":\"single\"} /-->\n\n<!-- wp:paragraph -->\n<p>This button uses the single layout — only the PayPal button, no secondary Debit/Credit Card option.</p>\n<!-- /wp:paragraph -->', 'post_status' => 'publish', 'post_type' => 'post')); ?>"
 		},
 		{
 			"step": "runPHP",
-			"code": "<?php require_once 'wordpress/wp-load.php'; wp_insert_post(array('post_title' => 'PayPal Button — Multiple Currencies', 'post_name' => 'paypal-currencies', 'post_content' => '<!-- wp:jetpack/paypal-payment-buttons {\"isApiManaged\":true,\"resourceId\":\"PLB-PZZ4BXPVVQQD\",\"paymentLink\":\"https://www.sandbox.paypal.com/ncp/payment/PLB-PZZ4BXPVVQQD\",\"productName\":\"Euro Product\",\"price\":\"24.99\",\"currencyCode\":\"EUR\",\"productDescription\":\"A product priced in Euros.\",\"buttonType\":\"stacked\"} /-->\n\n<!-- wp:jetpack/paypal-payment-buttons {\"isApiManaged\":true,\"resourceId\":\"PLB-3A6ADHXLFVSA\",\"paymentLink\":\"https://www.sandbox.paypal.com/ncp/payment/PLB-3A6ADHXLFVSA\",\"productName\":\"British Product\",\"price\":\"19.99\",\"currencyCode\":\"GBP\",\"productDescription\":\"A product priced in British Pounds.\",\"buttonType\":\"stacked\"} /-->\n\n<!-- wp:paragraph -->\n<p>Multiple buttons on a single page with different currencies — EUR and GBP.</p>\n<!-- /wp:paragraph -->', 'post_status' => 'publish', 'post_type' => 'post')); ?>"
+			"code": "<?php require_once 'wordpress/wp-load.php'; wp_insert_post(array('post_title' => 'PayPal Button — Multiple Currencies', 'post_name' => 'paypal-currencies', 'post_content' => '<!-- wp:jetpack/paypal-payment-buttons {\"isApiManaged\":true,\"resourceId\":\"PLB-PZZ4BXPVVQQD\",\"paymentLink\":\"https://www.paypal.com/ncp/payment/PLB-PZZ4BXPVVQQD\",\"productName\":\"Euro Product\",\"price\":\"24.99\",\"currencyCode\":\"EUR\",\"productDescription\":\"A product priced in Euros.\",\"buttonType\":\"stacked\"} /-->\n\n<!-- wp:jetpack/paypal-payment-buttons {\"isApiManaged\":true,\"resourceId\":\"PLB-3A6ADHXLFVSA\",\"paymentLink\":\"https://www.paypal.com/ncp/payment/PLB-3A6ADHXLFVSA\",\"productName\":\"British Product\",\"price\":\"19.99\",\"currencyCode\":\"GBP\",\"productDescription\":\"A product priced in British Pounds.\",\"buttonType\":\"stacked\"} /-->\n\n<!-- wp:paragraph -->\n<p>Multiple buttons on a single page with different currencies — EUR and GBP.</p>\n<!-- /wp:paragraph -->', 'post_status' => 'publish', 'post_type' => 'post')); ?>"
 		}
 	]
 }
