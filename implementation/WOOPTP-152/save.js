@@ -9,7 +9,7 @@
  * original v0.4.0-alpha save output, ensuring no block validation errors.
  * The deprecated.js handles matching older stored HTML and migrating.
  *
- * @package automattic/jetpack-paypal-payments
+ * @package
  * @since 0.8.0
  */
 
@@ -18,9 +18,9 @@ import { useBlockProps } from '@wordpress/block-editor';
 /**
  * Save component for the PayPal Payment Buttons block.
  *
- * @param {Object} props            Block props.
- * @param {Object} props.attributes Block attributes.
- * @return {JSX.Element} Rendered block for the frontend.
+ * @param {object} props            - Block props.
+ * @param {object} props.attributes - Block attributes.
+ * @return {Element} Rendered block for the frontend.
  */
 export default function PayPalPaymentButtonsSave( { attributes } ) {
 	const {
@@ -47,9 +47,7 @@ export default function PayPalPaymentButtonsSave( { attributes } ) {
 				<div className="jetpack-paypal-button">
 					{ /* Product info */ }
 					<div className="jetpack-paypal-button__product">
-						<span className="jetpack-paypal-button__product-name">
-							{ productName }
-						</span>
+						<span className="jetpack-paypal-button__product-name">{ productName }</span>
 						{ productDescription && (
 							<span className="jetpack-paypal-button__product-description">
 								{ productDescription }

@@ -5,11 +5,11 @@
  * form inputs client-side before API submission and map API errors
  * to user-friendly messages.
  *
- * @package automattic/jetpack-paypal-payments
+ * @package
  * @since 0.8.0
  */
 
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 
 /**
  * Validation constants — match server-side limits.
@@ -21,15 +21,38 @@ export const MAX_DESCRIPTION_LENGTH = 256;
  * Set of valid ISO currency codes supported by PayPal.
  */
 export const VALID_CURRENCY_CODES = new Set( [
-	'USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CHF', 'SEK', 'NOK', 'DKK',
-	'NZD', 'SGD', 'HKD', 'MXN', 'BRL', 'PLN', 'CZK', 'HUF', 'ILS', 'MYR',
-	'PHP', 'TWD', 'THB', 'INR', 'CNY', 'RUB',
+	'USD',
+	'EUR',
+	'GBP',
+	'CAD',
+	'AUD',
+	'JPY',
+	'CHF',
+	'SEK',
+	'NOK',
+	'DKK',
+	'NZD',
+	'SGD',
+	'HKD',
+	'MXN',
+	'BRL',
+	'PLN',
+	'CZK',
+	'HUF',
+	'ILS',
+	'MYR',
+	'PHP',
+	'TWD',
+	'THB',
+	'INR',
+	'CNY',
+	'RUB',
 ] );
 
 /**
  * Validate a price string.
  *
- * @param {string} value The price value.
+ * @param {string} value - The price value.
  * @return {string|null} Error message or null if valid.
  */
 export function validatePrice( value ) {
@@ -44,7 +67,10 @@ export function validatePrice( value ) {
 
 	// Check max 2 decimal places.
 	if ( ! /^\d+(\.\d{1,2})?$/.test( value.trim() ) ) {
-		return __( 'Price can have at most 2 decimal places (e.g., "29.99").', 'jetpack-paypal-payments' );
+		return __(
+			'Price can have at most 2 decimal places (e.g., "29.99").',
+			'jetpack-paypal-payments'
+		);
 	}
 
 	return null;
@@ -53,7 +79,7 @@ export function validatePrice( value ) {
 /**
  * Validate a product name.
  *
- * @param {string} value The product name.
+ * @param {string} value - The product name.
  * @return {string|null} Error message or null if valid.
  */
 export function validateProductName( value ) {
@@ -62,7 +88,11 @@ export function validateProductName( value ) {
 	}
 
 	if ( value.length > MAX_NAME_LENGTH ) {
-		return __( `Product name must be ${ MAX_NAME_LENGTH } characters or fewer.`, 'jetpack-paypal-payments' );
+		return sprintf(
+			/* translators: %d: maximum number of characters allowed for the product name */
+			__( 'Product name must be %d characters or fewer.', 'jetpack-paypal-payments' ),
+			MAX_NAME_LENGTH
+		);
 	}
 
 	return null;
@@ -71,12 +101,16 @@ export function validateProductName( value ) {
 /**
  * Validate a description (optional field).
  *
- * @param {string} value The description.
+ * @param {string} value - The description.
  * @return {string|null} Error message or null if valid.
  */
 export function validateDescription( value ) {
 	if ( value && value.length > MAX_DESCRIPTION_LENGTH ) {
-		return __( `Description must be ${ MAX_DESCRIPTION_LENGTH } characters or fewer.`, 'jetpack-paypal-payments' );
+		return sprintf(
+			/* translators: %d: maximum number of characters allowed for the description */
+			__( 'Description must be %d characters or fewer.', 'jetpack-paypal-payments' ),
+			MAX_DESCRIPTION_LENGTH
+		);
 	}
 
 	return null;
@@ -88,7 +122,7 @@ export function validateDescription( value ) {
  * The server-side already returns user-friendly messages, but this
  * provides client-side fallbacks for network errors and edge cases.
  *
- * @param {Object} err The error object from apiFetch.
+ * @param {object} err - The error object from apiFetch.
  * @return {string} User-friendly error message.
  */
 export function getUserFriendlyError( err ) {

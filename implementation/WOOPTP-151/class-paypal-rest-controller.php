@@ -325,7 +325,7 @@ class PayPal_REST_Controller {
 	 * @param WP_REST_Request $request The REST request.
 	 * @return WP_REST_Response Response with connection status.
 	 */
-	public static function handle_connection_status( WP_REST_Request $request ) {
+	public static function handle_connection_status( WP_REST_Request $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		return new WP_REST_Response(
 			PayPal_OAuth::get_connection_status(),
 			200
@@ -338,7 +338,7 @@ class PayPal_REST_Controller {
 	 * @param WP_REST_Request $request The REST request.
 	 * @return WP_REST_Response Response confirming disconnection.
 	 */
-	public static function handle_disconnect( WP_REST_Request $request ) {
+	public static function handle_disconnect( WP_REST_Request $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		PayPal_OAuth::disconnect();
 
 		return new WP_REST_Response(
@@ -359,7 +359,7 @@ class PayPal_REST_Controller {
 	public static function handle_set_environment( WP_REST_Request $request ) {
 		$environment = $request->get_param( 'environment' );
 
-		$updated = PayPal_OAuth::set_environment( $environment );
+		PayPal_OAuth::set_environment( $environment );
 
 		return new WP_REST_Response(
 			array(
@@ -621,15 +621,15 @@ class PayPal_REST_Controller {
 				'items'       => array(
 					'type'       => 'object',
 					'properties' => array(
-						'name'          => array(
+						'name'        => array(
 							'type'     => 'string',
 							'required' => true,
 						),
-						'description'   => array(
+						'description' => array(
 							'type'     => 'string',
 							'required' => false,
 						),
-						'unit_amount'   => array(
+						'unit_amount' => array(
 							'type'       => 'object',
 							'required'   => true,
 							'properties' => array(
@@ -643,12 +643,12 @@ class PayPal_REST_Controller {
 								),
 							),
 						),
-						'quantity'      => array(
+						'quantity'    => array(
 							'type'     => 'string',
 							'required' => false,
 							'default'  => '1',
 						),
-						'image_url'     => array(
+						'image_url'   => array(
 							'type'   => 'string',
 							'format' => 'uri',
 						),
