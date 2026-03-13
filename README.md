@@ -53,6 +53,8 @@ Published Page → PayPal-branded button → PayPal Checkout
 | WOOPTP-163 | Dual environment credential storage | Done |
 | WOOPTP-164 | Token pre-validation on connect | Done |
 | WOOPTP-165 | Pre-request token expiry check | Done |
+| WOOPTP-166 | Fix PayPal SVG block icon | Done |
+| WOOPTP-167 | Standalone script stubs for Playground mode | Done |
 
 ## Directory Structure
 
@@ -146,9 +148,15 @@ implementation/
 │   ├── changes.patch
 │   └── PR-DESCRIPTION.md
 │
-└── WOOPTP-165/          # Pre-request Token Expiry Check
-    ├── class-paypal-oauth.php        (supersedes WOOPTP-164)
-    ├── changes.patch
+├── WOOPTP-165/          # Pre-request Token Expiry Check
+│   ├── class-paypal-oauth.php        (supersedes WOOPTP-164)
+│   ├── changes.patch
+│   └── PR-DESCRIPTION.md
+│
+├── WOOPTP-166/          # Fix PayPal SVG Block Icon
+│   └── PR-DESCRIPTION.md
+│
+└── WOOPTP-167/          # Standalone Script Stubs for Playground
     └── PR-DESCRIPTION.md
 ```
 
@@ -170,7 +178,9 @@ When integrating, use the latest version of each file (later issues supersede ea
 | `class-paypal-oauth.php` | WOOPTP-165 (includes 163, 164) |
 | `class-paypal-api-client.php` | WOOPTP-151 |
 | `class-paypal-rest-controller.php` | WOOPTP-164 (includes 163) |
-| `class-paypal-payment-buttons.php` | WOOPTP-161 |
+| `class-paypal-payment-buttons.php` (package) | WOOPTP-161 |
+| `class-paypal-payment-buttons.php` (plugin) | WOOPTP-167 (standalone stubs) |
+| `register-jetpack-block.js` | WOOPTP-166 (icon fix) |
 | `class-paypal-attribute-mapper.php` | WOOPTP-148 |
 | `block-v2.json` | WOOPTP-152 |
 | `index.js` | WOOPTP-152 |
