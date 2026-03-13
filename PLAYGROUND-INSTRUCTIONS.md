@@ -10,7 +10,7 @@ Setup takes a minute or two — you'll see progress messages while it installs p
 
 ## After it loads
 
-Everything is already set up and activated for you: the PayPal Payment Buttons plugin (v0.4.0) with production-default credentials and the guided credential wizard.
+Everything is already set up and activated for you: the PayPal Payment Buttons plugin (v0.4.1) with production-default credentials and the guided credential wizard.
 
 ### View the demo posts
 
@@ -27,7 +27,7 @@ Everything is already set up and activated for you: the PayPal Payment Buttons p
 - **Edit a button** — Open a demo post, click Edit, then click the PayPal button block. The settings panel on the right lets you change the product name, price, currency, and layout.
 - **Create a new button from scratch** — Go to Posts > Add New Post, click the **+** button in the top-left of the editor, search for "PayPal", and add the PayPal Payment Buttons block.
 
-## What's new in v0.4.0
+## What's new in v0.4.1
 
 - **Guided credential wizard** (WOOPTP-162) — 4-step onboarding flow replaces the bare credentials form
 - **Production default** (WOOPTP-163) — Environment defaults to production, not sandbox
