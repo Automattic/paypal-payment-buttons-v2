@@ -47,6 +47,12 @@ Published Page → PayPal-branded button → PayPal Checkout
 | WOOPTP-157 | Performance optimization | Backlog |
 | WOOPTP-158 | Accessibility audit | Backlog |
 | WOOPTP-159 | Jetpack monorepo integration | Backlog |
+| WOOPTP-160 | Fix payment_link HATEOAS extraction | Done |
+| WOOPTP-161 | Align frontend PHP rendering with editor | Done |
+| WOOPTP-162 | Guided credential entry UX | Done |
+| WOOPTP-163 | Dual environment credential storage | Done |
+| WOOPTP-164 | Token pre-validation on connect | Done |
+| WOOPTP-165 | Pre-request token expiry check | Done |
 
 ## Directory Structure
 
@@ -113,16 +119,42 @@ implementation/
 │   ├── playwright.config.js
 │   └── PR-DESCRIPTION.md
 │
-└── WOOPTP-155/          # Documentation
-    ├── readme.txt         (WordPress.org)
-    ├── rest-api-reference.md
-    ├── troubleshooting-guide.md
+├── WOOPTP-155/          # Documentation
+│   ├── readme.txt         (WordPress.org)
+│   ├── rest-api-reference.md
+│   ├── troubleshooting-guide.md
+│   └── PR-DESCRIPTION.md
+│
+├── WOOPTP-161/          # Frontend Rendering Parity
+│   ├── class-paypal-payment-buttons.php  (currency symbols, logo SVG)
+│   ├── block.json
+│   ├── style.scss
+│   └── webpack.config.blocks.js
+│
+├── WOOPTP-162/          # Guided Credential Wizard
+│   ├── edit.js            (supersedes WOOPTP-151)
+│   ├── editor.scss        (supersedes WOOPTP-151)
+│   └── PR-DESCRIPTION.md
+│
+├── WOOPTP-163/          # Dual Environment — production default
+│   ├── changes.patch
+│   └── PR-DESCRIPTION.md
+│
+├── WOOPTP-164/          # Token Pre-validation on Connect
+│   ├── class-paypal-oauth.php        (supersedes WOOPTP-146)
+│   ├── class-paypal-rest-controller.php (supersedes WOOPTP-151)
+│   ├── changes.patch
+│   └── PR-DESCRIPTION.md
+│
+└── WOOPTP-165/          # Pre-request Token Expiry Check
+    ├── class-paypal-oauth.php        (supersedes WOOPTP-164)
+    ├── changes.patch
     └── PR-DESCRIPTION.md
 ```
 
 ## Key Technical Details
 
-- **OAuth:** AES-256-CBC encrypted credentials, transient-based token caching with 5-min early refresh
+- **OAuth:** AES-256-CBC encrypted credentials, transient + absolute-timestamp token caching (WOOPTP-165), pre-validation of Payment Links API access on connect (WOOPTP-164)
 - **API:** PayPal Pay Links & Buttons API (`/v1/checkout/payment-resources`), BN code: `WooNCPS_Ecom_Wordpress`
 - **Retry:** Exponential backoff (1s → 2s → 4s) on 500/502/503, auto token refresh on 401/403
 - **Security:** PayPal URL domain whitelist, server-side + client-side validation, `manage_options` capability checks
@@ -135,18 +167,19 @@ When integrating, use the latest version of each file (later issues supersede ea
 
 | File | Use from |
 |------|----------|
-| `class-paypal-oauth.php` | WOOPTP-146 |
+| `class-paypal-oauth.php` | WOOPTP-165 (includes 163, 164) |
 | `class-paypal-api-client.php` | WOOPTP-151 |
-| `class-paypal-rest-controller.php` | WOOPTP-151 |
+| `class-paypal-rest-controller.php` | WOOPTP-164 (includes 163) |
+| `class-paypal-payment-buttons.php` | WOOPTP-161 |
 | `class-paypal-attribute-mapper.php` | WOOPTP-148 |
 | `block-v2.json` | WOOPTP-152 |
 | `index.js` | WOOPTP-152 |
-| `edit.js` | WOOPTP-151 |
+| `edit.js` | WOOPTP-162 |
 | `save.js` | WOOPTP-152 |
 | `deprecated.js` | WOOPTP-152 |
 | `paypal-button-preview.js` | WOOPTP-150 |
-| `editor.scss` | WOOPTP-151 |
-| `style.scss` | WOOPTP-150 |
+| `editor.scss` | WOOPTP-162 |
+| `style.scss` | WOOPTP-161 |
 | `validation.js` | WOOPTP-153 |
 
 ## Reference Documents
