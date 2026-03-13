@@ -6,15 +6,11 @@ Click the link below to launch a fully working demo in your browser. Nothing to 
 
 **[Launch Demo](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/paypal-payment-buttons-v2/trunk/playground-blueprint.json)**
 
-Setup takes a minute or two — you'll see a progress message while it installs Jetpack.
+Setup takes a minute or two — you'll see progress messages while it installs plugins.
 
 ## After it loads
 
-### Activate the plugin
-
-1. You'll land on the WordPress dashboard.
-2. In the left sidebar, click **Plugins**.
-3. Find **Jetpack** in the list and click **Activate**.
+Everything is already set up and activated for you: Jetpack, the PayPal Payment Buttons plugin, and sandbox PayPal credentials.
 
 ### View the demo posts
 

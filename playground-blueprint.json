@@ -2,15 +2,12 @@
 	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
 	"landingPage": "/",
 	"preferredVersions": {
-		"php": "8.2",
-		"wp": "6.7"
+		"php": "8.4",
+		"wp": "6.9"
 	},
 	"features": {
 		"networking": true
 	},
-	"plugins": [
-		"gutenberg"
-	],
 	"steps": [
 		{
 			"step": "installPlugin",
@@ -20,7 +17,37 @@
 				"caption": "Installing Jetpack (PayPal Payment Buttons V2 branch)"
 			},
 			"options": {
-				"activate": false
+				"activate": true
+			}
+		},
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "wordpress.org/plugins",
+				"slug": "query-monitor"
+			},
+			"options": {
+				"activate": true
+			}
+		},
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "wordpress.org/plugins",
+				"slug": "user-switching"
+			},
+			"options": {
+				"activate": true
+			}
+		},
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "wordpress.org/plugins",
+				"slug": "wp-crontrol"
+			},
+			"options": {
+				"activate": true
 			}
 		},
 		{
@@ -29,11 +56,21 @@
 			"password": "password"
 		},
 		{
+			"step": "installTheme",
+			"themeData": {
+				"resource": "wordpress.org/themes",
+				"slug": "twentytwentyfive"
+			},
+			"options": {
+				"activate": true
+			}
+		},
+		{
 			"step": "setSiteOptions",
 			"options": {
 				"blogname": "PayPal Payment Buttons V2 Demo",
 				"blogdescription": "WordCamp Asia 2026 — Jetpack 15.7 Preview",
-				"permalink_structure": "/%postname%/",
+				"permalink_structure": "/%year%/%monthnum%/%day%/%postname%/",
 				"jetpack_paypal_payment_buttons_environment": "sandbox",
 				"jetpack_paypal_payment_buttons_credentials": "a:4:{s:9:\"client_id\";s:80:\"AXBOqFgtrx_-r_54BcViYWfAwr6wLsqwg1W9T816UK72z5nfvaSZ0jlfLWC5ok-kH4sDCs8EjD7bSyut\";s:13:\"client_secret\";s:80:\"EJVcn22Mvwc07PP3OzUEn5aCOQ8DYvqQ8cbNGgrWw3oXLOoyPRIxEBakHQc4nz6CCYB6hKBYEtaaH325\";s:4:\"hash\";s:32:\"552489cd8bbc2cde881447d1b779c2e6\";s:9:\"stored_at\";i:1773378117;}"
 			}
