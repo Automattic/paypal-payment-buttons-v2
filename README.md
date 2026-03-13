@@ -6,6 +6,8 @@ Pre-integration implementation for the PayPal Payment Buttons V2 API-driven flow
 **Package:** `automattic/jetpack-paypal-payments`
 **Block:** `jetpack/paypal-payment-buttons`
 
+**[Launch Live Demo in WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/paypal-payment-buttons-v2/trunk/playground-blueprint.json)** (see [PLAYGROUND-INSTRUCTIONS.md](PLAYGROUND-INSTRUCTIONS.md) for details)
+
 ## Architecture
 
 ```

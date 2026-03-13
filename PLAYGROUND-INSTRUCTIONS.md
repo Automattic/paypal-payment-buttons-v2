@@ -1,0 +1,38 @@
+# PayPal Payment Buttons V2 — Live Demo
+
+## One-click demo
+
+Click the link below to launch a fully working demo in your browser. Nothing to install — it runs entirely in WordPress Playground.
+
+**[Launch Demo](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/paypal-payment-buttons-v2/trunk/playground-blueprint.json)**
+
+Setup takes a minute or two — you'll see a progress message while it installs Jetpack.
+
+## After it loads
+
+### Activate the plugin
+
+1. You'll land on the WordPress dashboard.
+2. In the left sidebar, click **Plugins**.
+3. Find **Jetpack** in the list and click **Activate**.
+
+### View the demo posts
+
+1. In the left sidebar, click **Posts**.
+2. You'll see three demo posts:
+   - **PayPal Button — Stacked Layout** — A gold PayPal button with a "Debit or Credit Card" option below it ($29.99 USD)
+   - **PayPal Button — Single Layout** — Just the PayPal button by itself ($9.99 USD)
+   - **PayPal Button — Multiple Currencies** — Two buttons on one page, one in EUR and one in GBP
+3. Click any post title, then click **View Post** to see how it looks on the front end.
+
+## Things to try
+
+- **See the buttons as a visitor would** — Click "View Post" on any demo post to see the rendered PayPal buttons.
+- **Edit a button** — Open a demo post, click Edit, then click the PayPal button block. The settings panel on the right lets you change the product name, price, currency, and layout.
+- **Create a new button from scratch** — Go to Posts > Add New Post, click the **+** button in the top-left of the editor, search for "PayPal", and add the PayPal Payment Buttons block.
+
+## Good to know
+
+- **This is a sandbox.** The buttons connect to PayPal's test environment — no real money is involved.
+- **Nothing is saved permanently.** Playground runs entirely in your browser. Close the tab and everything resets. Click the link again to start fresh.
+- **Login credentials** (if you get logged out): username `admin`, password `password`.
