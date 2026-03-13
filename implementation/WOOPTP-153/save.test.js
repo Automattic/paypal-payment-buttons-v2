@@ -1,10 +1,11 @@
+/* eslint-disable testing-library/no-container, testing-library/no-node-access */
 /**
  * Tests for the PayPal Payment Buttons save component.
  *
  * Verifies that the save function renders the correct frontend markup
  * for API-managed blocks, legacy paste-code blocks, and edge cases.
  *
- * @package automattic/jetpack-paypal-payments
+ * @package
  */
 
 jest.mock( '@wordpress/block-editor', () => ( {
@@ -14,7 +15,7 @@ jest.mock( '@wordpress/block-editor', () => ( {
 } ) );
 
 import { render, screen } from '@testing-library/react';
-import PayPalPaymentButtonsSave from '../WOOPTP-152/save';
+import PayPalPaymentButtonsSave from '../../src/paypal-payment-buttons/save';
 
 describe( 'PayPalPaymentButtonsSave', () => {
 	it( 'renders an API-managed block with product info and payment link', () => {
@@ -29,9 +30,7 @@ describe( 'PayPalPaymentButtonsSave', () => {
 			buttonText: 'Buy Now',
 		};
 
-		const { container } = render(
-			<PayPalPaymentButtonsSave attributes={ attributes } />
-		);
+		const { container } = render( <PayPalPaymentButtonsSave attributes={ attributes } /> );
 
 		expect( screen.getByText( 'Test Product' ) ).toBeInTheDocument();
 		expect( screen.getByText( 'A great product.' ) ).toBeInTheDocument();
@@ -41,13 +40,8 @@ describe( 'PayPalPaymentButtonsSave', () => {
 		expect( screen.getByText( /USD/ ) ).toBeInTheDocument();
 
 		// Payment link is used as the href.
-		const paypalLink = container.querySelector(
-			'.jetpack-paypal-button__paypal-link'
-		);
-		expect( paypalLink ).toHaveAttribute(
-			'href',
-			'https://www.paypal.com/ncp/payment/ABC123'
-		);
+		const paypalLink = container.querySelector( '.jetpack-paypal-button__paypal-link' );
+		expect( paypalLink ).toHaveAttribute( 'href', 'https://www.paypal.com/ncp/payment/ABC123' );
 	} );
 
 	it( 'renders a stacked layout with a debit/credit button', () => {
@@ -60,13 +54,9 @@ describe( 'PayPalPaymentButtonsSave', () => {
 			currencyCode: 'USD',
 		};
 
-		const { container } = render(
-			<PayPalPaymentButtonsSave attributes={ attributes } />
-		);
+		const { container } = render( <PayPalPaymentButtonsSave attributes={ attributes } /> );
 
-		const debitLink = container.querySelector(
-			'.jetpack-paypal-button__debit-link'
-		);
+		const debitLink = container.querySelector( '.jetpack-paypal-button__debit-link' );
 		expect( debitLink ).toBeInTheDocument();
 		expect( debitLink ).toHaveTextContent( 'Debit or Credit Card' );
 	} );
@@ -81,13 +71,9 @@ describe( 'PayPalPaymentButtonsSave', () => {
 			currencyCode: 'USD',
 		};
 
-		const { container } = render(
-			<PayPalPaymentButtonsSave attributes={ attributes } />
-		);
+		const { container } = render( <PayPalPaymentButtonsSave attributes={ attributes } /> );
 
-		const debitLink = container.querySelector(
-			'.jetpack-paypal-button__debit-link'
-		);
+		const debitLink = container.querySelector( '.jetpack-paypal-button__debit-link' );
 		expect( debitLink ).not.toBeInTheDocument();
 	} );
 
@@ -99,24 +85,17 @@ describe( 'PayPalPaymentButtonsSave', () => {
 			buttonType: 'stacked',
 		};
 
-		const { container } = render(
-			<PayPalPaymentButtonsSave attributes={ attributes } />
-		);
+		const { container } = render( <PayPalPaymentButtonsSave attributes={ attributes } /> );
 
 		const legacyDiv = container.querySelector( '#HOSTED_BTN_123' );
 		expect( legacyDiv ).toBeInTheDocument();
-		expect( legacyDiv ).toHaveClass(
-			'jetpack-paypal-button',
-			'jetpack-paypal-button--stacked'
-		);
+		expect( legacyDiv ).toHaveClass( 'jetpack-paypal-button', 'jetpack-paypal-button--stacked' );
 	} );
 
 	it( 'renders an empty fallback when no attributes match', () => {
 		const attributes = {};
 
-		const { container } = render(
-			<PayPalPaymentButtonsSave attributes={ attributes } />
-		);
+		const { container } = render( <PayPalPaymentButtonsSave attributes={ attributes } /> );
 
 		// Should render only the block wrapper div with no children.
 		const wrapper = container.firstChild;
@@ -135,13 +114,9 @@ describe( 'PayPalPaymentButtonsSave', () => {
 			productDescription: '',
 		};
 
-		const { container } = render(
-			<PayPalPaymentButtonsSave attributes={ attributes } />
-		);
+		const { container } = render( <PayPalPaymentButtonsSave attributes={ attributes } /> );
 
-		const descriptionEl = container.querySelector(
-			'.jetpack-paypal-button__product-description'
-		);
+		const descriptionEl = container.querySelector( '.jetpack-paypal-button__product-description' );
 		expect( descriptionEl ).not.toBeInTheDocument();
 	} );
 } );

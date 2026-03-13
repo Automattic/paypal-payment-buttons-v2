@@ -1,18 +1,19 @@
+/* eslint-disable testing-library/no-node-access, testing-library/prefer-user-event */
 /**
  * Tests for the PayPal Button Preview component.
  *
  * Verifies the editor preview renders product information, button text,
  * layout variants, and prevents click navigation correctly.
  *
- * @package automattic/jetpack-paypal-payments
+ * @package
  */
 
 jest.mock( '@wordpress/i18n', () => ( {
-	__: ( str ) => str,
+	__: str => str,
 } ) );
 
 import { render, screen, fireEvent } from '@testing-library/react';
-import PayPalButtonPreview from '../WOOPTP-150/paypal-button-preview';
+import PayPalButtonPreview from '../../src/paypal-payment-buttons/paypal-button-preview';
 
 const defaultProps = {
 	buttonText: '',
@@ -37,18 +38,12 @@ describe( 'PayPalButtonPreview', () => {
 
 	it( 'renders the description when provided', () => {
 		render( <PayPalButtonPreview { ...defaultProps } /> );
-		expect(
-			screen.getByText( 'A high-quality widget for your needs.' )
-		).toBeInTheDocument();
+		expect( screen.getByText( 'A high-quality widget for your needs.' ) ).toBeInTheDocument();
 	} );
 
 	it( 'does not render the description when it is empty', () => {
-		render(
-			<PayPalButtonPreview { ...defaultProps } productDescription="" />
-		);
-		expect(
-			screen.queryByText( 'A high-quality widget for your needs.' )
-		).not.toBeInTheDocument();
+		render( <PayPalButtonPreview { ...defaultProps } productDescription="" /> );
+		expect( screen.queryByText( 'A high-quality widget for your needs.' ) ).not.toBeInTheDocument();
 	} );
 
 	it( 'renders the PayPal logo SVG', () => {
@@ -64,52 +59,35 @@ describe( 'PayPalButtonPreview', () => {
 	} );
 
 	it( 'shows custom button text when provided', () => {
-		render(
-			<PayPalButtonPreview { ...defaultProps } buttonText="Buy It Now" />
-		);
+		render( <PayPalButtonPreview { ...defaultProps } buttonText="Buy It Now" /> );
 		expect( screen.getByText( 'Buy It Now' ) ).toBeInTheDocument();
 	} );
 
 	it( 'shows the debit/credit button for stacked layout', () => {
-		render(
-			<PayPalButtonPreview { ...defaultProps } buttonType="stacked" />
-		);
-		expect(
-			screen.getByText( 'Debit or Credit Card' )
-		).toBeInTheDocument();
+		render( <PayPalButtonPreview { ...defaultProps } buttonType="stacked" /> );
+		expect( screen.getByText( 'Debit or Credit Card' ) ).toBeInTheDocument();
 	} );
 
 	it( 'hides the debit/credit button for single layout', () => {
-		render(
-			<PayPalButtonPreview { ...defaultProps } buttonType="single" />
-		);
-		expect(
-			screen.queryByText( 'Debit or Credit Card' )
-		).not.toBeInTheDocument();
+		render( <PayPalButtonPreview { ...defaultProps } buttonType="single" /> );
+		expect( screen.queryByText( 'Debit or Credit Card' ) ).not.toBeInTheDocument();
 	} );
 
 	it( 'shows the payment link reference', () => {
 		render( <PayPalButtonPreview { ...defaultProps } /> );
 		expect( screen.getByText( 'Payment link:' ) ).toBeInTheDocument();
-		expect(
-			screen.getByText( 'https://www.paypal.com/ncp/payment/ABC123' )
-		).toBeInTheDocument();
+		expect( screen.getByText( 'https://www.paypal.com/ncp/payment/ABC123' ) ).toBeInTheDocument();
 	} );
 
 	it( 'prevents click navigation on the PayPal button', () => {
 		render( <PayPalButtonPreview { ...defaultProps } /> );
-		const link = document.querySelector(
-			'.jetpack-paypal-button-preview__paypal-button'
-		);
-		const clickEvent = fireEvent.click( link );
+		const link = document.querySelector( '.jetpack-paypal-button-preview__paypal-button' );
+		fireEvent.click( link );
 
 		// fireEvent.click returns false when preventDefault was called.
 		// We verify the link has an onClick handler that calls preventDefault
 		// by checking the element exists and has the correct href.
 		expect( link ).toBeInTheDocument();
-		expect( link ).toHaveAttribute(
-			'href',
-			'https://www.paypal.com/ncp/payment/ABC123'
-		);
+		expect( link ).toHaveAttribute( 'href', 'https://www.paypal.com/ncp/payment/ABC123' );
 	} );
 } );

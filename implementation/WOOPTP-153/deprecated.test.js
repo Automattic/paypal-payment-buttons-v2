@@ -1,3 +1,4 @@
+/* eslint-disable testing-library/no-container, testing-library/no-node-access */
 /**
  * Tests for the PayPal Payment Buttons deprecation handler.
  *
@@ -5,7 +6,7 @@
  * legacy blocks, migrates their attributes, and reproduces the original
  * save markup for block validation.
  *
- * @package automattic/jetpack-paypal-payments
+ * @package
  */
 
 jest.mock( '@wordpress/block-editor', () => ( {
@@ -15,7 +16,7 @@ jest.mock( '@wordpress/block-editor', () => ( {
 } ) );
 
 import { render } from '@testing-library/react';
-import deprecated from '../WOOPTP-152/deprecated';
+import deprecated from '../../src/paypal-payment-buttons/deprecated';
 
 // The deprecated array should have exactly one entry (v040Alpha).
 const v040Alpha = deprecated[ 0 ];
@@ -90,16 +91,11 @@ describe( 'deprecated — v0.4.0-alpha', () => {
 				hostedButtonId: 'BTN_LEGACY',
 			};
 
-			const { container } = render(
-				v040Alpha.save( { attributes } )
-			);
+			const { container } = render( v040Alpha.save( { attributes } ) );
 
 			const legacyDiv = container.querySelector( '#BTN_LEGACY' );
 			expect( legacyDiv ).toBeInTheDocument();
-			expect( legacyDiv ).toHaveClass(
-				'jetpack-paypal-button',
-				'jetpack-paypal-button--stacked'
-			);
+			expect( legacyDiv ).toHaveClass( 'jetpack-paypal-button', 'jetpack-paypal-button--stacked' );
 		} );
 
 		it( 'renders an empty div when hostedButtonId is missing', () => {
@@ -107,9 +103,7 @@ describe( 'deprecated — v0.4.0-alpha', () => {
 				buttonType: 'stacked',
 			};
 
-			const { container } = render(
-				v040Alpha.save( { attributes } )
-			);
+			const { container } = render( v040Alpha.save( { attributes } ) );
 
 			const wrapper = container.firstChild;
 			expect( wrapper ).toHaveClass( 'wp-block-test' );
