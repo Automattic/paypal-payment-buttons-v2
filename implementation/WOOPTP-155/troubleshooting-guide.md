@@ -83,12 +83,22 @@ Support documentation for common issues with the PayPal Payment Buttons plugin.
 
 ### Button preview shows but frontend doesn't render
 
-**Cause:** The post may not have been saved/published after creating the button.
+**Cause:** The post may not have been saved/published after creating the button, or the payment link was not extracted correctly from the API response.
 
 **Steps to fix:**
 1. After creating a button, make sure to **Update** or **Publish** the post
 2. Check that the block is not in an error state (red border)
-3. View the page source to confirm the payment link URL is present
+3. View the page source to confirm the payment link URL is present in an `<a>` tag
+4. If the link is missing, try deleting the block and creating a new button — the HATEOAS link extraction fix in v0.8.0 resolves most cases
+
+### Frontend button looks different from the editor preview
+
+**Cause:** In versions prior to v0.8.0, the PHP renderer used different markup and classes than the React editor preview.
+
+**Steps to fix:**
+1. Update to the latest version — v0.8.0 aligns the PHP frontend rendering with the editor preview
+2. Clear any page caches (plugin, CDN, or browser cache)
+3. Verify that `style.css` is loading on the frontend (check page source for `paypal-payment-buttons/style.css`)
 
 ---
 
