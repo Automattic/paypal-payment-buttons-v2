@@ -2,8 +2,8 @@
 	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
 	"landingPage": "/",
 	"preferredVersions": {
-		"php": "8.4",
-		"wp": "6.9"
+		"php": "8.2",
+		"wp": "6.7"
 	},
 	"features": {
 		"networking": true
@@ -15,36 +15,6 @@
 				"resource": "url",
 				"url": "https://github.com/Automattic/paypal-payment-buttons-v2/releases/download/v0.3.2-playground/paypal-payment-buttons.zip",
 				"caption": "Installing PayPal Payment Buttons"
-			},
-			"options": {
-				"activate": true
-			}
-		},
-		{
-			"step": "installPlugin",
-			"pluginData": {
-				"resource": "wordpress.org/plugins",
-				"slug": "query-monitor"
-			},
-			"options": {
-				"activate": true
-			}
-		},
-		{
-			"step": "installPlugin",
-			"pluginData": {
-				"resource": "wordpress.org/plugins",
-				"slug": "user-switching"
-			},
-			"options": {
-				"activate": true
-			}
-		},
-		{
-			"step": "installPlugin",
-			"pluginData": {
-				"resource": "wordpress.org/plugins",
-				"slug": "wp-crontrol"
 			},
 			"options": {
 				"activate": true
