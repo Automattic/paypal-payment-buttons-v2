@@ -161,6 +161,10 @@ Create a payment resource (button/link) via the PayPal API.
 }
 ```
 
+> **Note:** PayPal's raw API returns the payment URL inside a HATEOAS `links` array
+> (`{ "rel": "payment_link", "href": "..." }`), not as a top-level field. The WordPress
+> REST endpoint extracts it automatically so consumers always receive a flat `payment_link` string.
+
 ---
 
 ### GET `/jetpack/v4/paypal/buttons`
@@ -222,8 +226,8 @@ Delete a payment resource. Returns success even if already deleted on PayPal (40
 | Attribute | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `isApiManaged` | boolean | `false` | Whether this block uses the V2 API flow |
-| `buttonType` | string | `stacked` | `stacked` (PayPal + Debit) or `single` (PayPal only) |
-| `buttonText` | string | `Pay Now` | Text shown on the PayPal button |
+| `buttonType` | string | `stacked` | `stacked` (PayPal + Debit/Credit) or `inline` (PayPal only) |
+| `buttonText` | string | `Pay Now` | Text shown next to the PayPal logo on the button |
 | `resourceId` | string | — | PayPal resource ID (`PLB-...`) |
 | `paymentLink` | string | — | PayPal payment URL |
 | `productName` | string | — | Product name |
