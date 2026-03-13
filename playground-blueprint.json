@@ -13,7 +13,7 @@
 			"step": "installPlugin",
 			"pluginData": {
 				"resource": "url",
-				"url": "https://github.com/Automattic/paypal-payment-buttons-v2/releases/download/v0.4.2-playground/paypal-payment-buttons.zip",
+				"url": "https://github.com/Automattic/paypal-payment-buttons-v2/releases/download/v0.4.3-playground/paypal-payment-buttons.zip",
 				"caption": "Installing PayPal Payment Buttons"
 			},
 			"options": {
@@ -39,11 +39,13 @@
 			"step": "setSiteOptions",
 			"options": {
 				"blogname": "PayPal Payment Buttons V2 Demo",
-				"blogdescription": "WordCamp Asia 2026 — Jetpack 15.7 Preview (v0.4.2)",
-				"permalink_structure": "/%year%/%monthnum%/%day%/%postname%/",
-				"jetpack_paypal_payment_buttons_environment": "production",
-				"jetpack_paypal_payment_buttons_credentials": "a:4:{s:9:\"client_id\";s:80:\"AXBOqFgtrx_-r_54BcViYWfAwr6wLsqwg1W9T816UK72z5nfvaSZ0jlfLWC5ok-kH4sDCs8EjD7bSyut\";s:13:\"client_secret\";s:80:\"EJVcn22Mvwc07PP3OzUEn5aCOQ8DYvqQ8cbNGgrWw3oXLOoyPRIxEBakHQc4nz6CCYB6hKBYEtaaH325\";s:4:\"hash\";s:32:\"552489cd8bbc2cde881447d1b779c2e6\";s:9:\"stored_at\";i:1773378117;}"
+				"blogdescription": "WordCamp Asia 2026 — Jetpack 15.7 Preview (v0.4.3)",
+				"permalink_structure": "/%year%/%monthnum%/%day%/%postname%/"
 			}
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require_once 'wordpress/wp-load.php'; Automattic\\Jetpack\\PaypalPayments\\PayPal_OAuth::store_credentials( 'AXBOqFgtrx_-r_54BcViYWfAwr6wLsqwg1W9T816UK72z5nfvaSZ0jlfLWC5ok-kH4sDCs8EjD7bSyut', 'EJVcn22Mvwc07PP3OzUEn5aCOQ8DYvqQ8cbNGgrWw3oXLOoyPRIxEBakHQc4nz6CCYB6hKBYEtaaH325' ); Automattic\\Jetpack\\PaypalPayments\\PayPal_OAuth::set_environment( 'sandbox' ); ?>"
 		},
 		{
 			"step": "runPHP",
