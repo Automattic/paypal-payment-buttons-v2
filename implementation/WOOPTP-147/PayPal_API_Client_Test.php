@@ -135,6 +135,7 @@ class PayPal_API_Client_Test extends TestCase {
 	 * Test that get_resource rejects invalid resource ID format.
 	 *
 	 * @param string $invalid_id The invalid ID to test.
+	 * @dataProvider invalid_resource_ids_provider
 	 */
 	#[DataProvider( 'invalid_resource_ids_provider' )]
 	public function test_get_resource_rejects_invalid_id_format( $invalid_id ) {
@@ -189,11 +190,11 @@ class PayPal_API_Client_Test extends TestCase {
 		$this->set_up_connected_state();
 
 		$expected_response = array(
-			'id'             => 'PLB-TEST123456',
-			'type'           => 'BUY_NOW',
+			'id'               => 'PLB-TEST123456',
+			'type'             => 'BUY_NOW',
 			'integration_mode' => 'LINK',
-			'payment_link'   => 'https://www.paypal.com/ncp/payment/TEST123456',
-			'status'         => 'ACTIVE',
+			'payment_link'     => 'https://www.paypal.com/ncp/payment/TEST123456',
+			'status'           => 'ACTIVE',
 		);
 
 		$this->mock_http_response( 201, $expected_response );
@@ -227,7 +228,7 @@ class PayPal_API_Client_Test extends TestCase {
 		$this->set_up_connected_state();
 
 		$expected_response = array(
-			'items'      => array(
+			'items'       => array(
 				array(
 					'id'     => 'PLB-ITEM001',
 					'type'   => 'BUY_NOW',
@@ -333,7 +334,7 @@ class PayPal_API_Client_Test extends TestCase {
 
 		$this->assertInstanceOf( \WP_Error::class, $result );
 		$this->assertEquals( 'paypal_api_invalid_request', $result->get_error_code() );
-		$this->assertStringContainsString( 'Invalid request', $result->get_error_message() );
+		$this->assertStringContainsString( 'invalid data', $result->get_error_message() );
 	}
 
 	/**
@@ -379,7 +380,7 @@ class PayPal_API_Client_Test extends TestCase {
 
 		$this->assertInstanceOf( \WP_Error::class, $result );
 		$this->assertEquals( 'paypal_api_resource_not_found', $result->get_error_code() );
-		$this->assertStringContainsString( 'not found', $result->get_error_message() );
+		$this->assertStringContainsString( 'no longer exists', $result->get_error_message() );
 	}
 
 	/**
@@ -464,8 +465,8 @@ class PayPal_API_Client_Test extends TestCase {
 		$result = PayPal_API_Client::list_resources();
 
 		$this->assertInstanceOf( \WP_Error::class, $result );
-		$this->assertEquals( 'paypal_api_request_failed', $result->get_error_code() );
-		$this->assertStringContainsString( 'Connection timed out', $result->get_error_message() );
+		$this->assertEquals( 'paypal_api_timeout', $result->get_error_code() );
+		$this->assertStringContainsString( 'timed out', $result->get_error_message() );
 	}
 
 	/**
@@ -515,7 +516,7 @@ class PayPal_API_Client_Test extends TestCase {
 						'code'    => 201,
 						'message' => 'Created',
 					),
-					'body'     => wp_json_encode( array( 'id' => 'PLB-NEW123' ) ),
+					'body'     => wp_json_encode( array( 'id' => 'PLB-NEW123' ), JSON_UNESCAPED_SLASHES ),
 				);
 			},
 			10,
@@ -533,7 +534,7 @@ class PayPal_API_Client_Test extends TestCase {
 		$this->assertEquals( 'POST', $captured_args['method'] );
 		$this->assertStringContainsString( 'Bearer ', $captured_args['headers']['Authorization'] );
 		$this->assertEquals( 'application/json', $captured_args['headers']['Content-Type'] );
-		$this->assertArrayHasKey( 'PayPal-Partner-Attribution-Id', $captured_args['headers'] );
+		$this->assertArrayHasKey( 'PayPal-Request-Id', $captured_args['headers'] );
 		$this->assertEquals( 30, $captured_args['timeout'] );
 	}
 
@@ -587,7 +588,7 @@ class PayPal_API_Client_Test extends TestCase {
 						'code'    => 200,
 						'message' => 'OK',
 					),
-					'body'     => wp_json_encode( array( 'id' => 'PLB-UPD123' ) ),
+					'body'     => wp_json_encode( array( 'id' => 'PLB-UPD123' ), JSON_UNESCAPED_SLASHES ),
 				);
 			},
 			10,
@@ -619,7 +620,7 @@ class PayPal_API_Client_Test extends TestCase {
 						'code'    => 200,
 						'message' => 'OK',
 					),
-					'body'     => wp_json_encode( array( 'items' => array() ) ),
+					'body'     => wp_json_encode( array( 'items' => array() ), JSON_UNESCAPED_SLASHES ),
 				);
 			},
 			10,
@@ -652,7 +653,7 @@ class PayPal_API_Client_Test extends TestCase {
 						'code'    => 200,
 						'message' => 'OK',
 					),
-					'body'     => wp_json_encode( array( 'items' => array() ) ),
+					'body'     => wp_json_encode( array( 'items' => array() ), JSON_UNESCAPED_SLASHES ),
 				);
 			},
 			10,
@@ -700,7 +701,7 @@ class PayPal_API_Client_Test extends TestCase {
 						'code'    => $status_code,
 						'message' => '',
 					),
-					'body'     => is_array( $body ) ? wp_json_encode( $body ) : $body,
+					'body'     => is_array( $body ) ? wp_json_encode( $body, JSON_UNESCAPED_SLASHES ) : $body,
 				);
 			},
 			10,

@@ -109,6 +109,7 @@ class PayPal_Attribute_Mapper_Test extends TestCase {
 	 * Test that invalid price values are rejected.
 	 *
 	 * @param string $price The invalid price to test.
+	 * @dataProvider invalid_price_provider
 	 */
 	#[DataProvider( 'invalid_price_provider' )]
 	public function test_validate_rejects_invalid_price( $price ) {
@@ -131,12 +132,12 @@ class PayPal_Attribute_Mapper_Test extends TestCase {
 	 */
 	public static function invalid_price_provider(): array {
 		return array(
-			'negative'         => array( '-5.00' ),
-			'zero'             => array( '0' ),
-			'zero decimal'     => array( '0.00' ),
-			'non-numeric'      => array( 'abc' ),
-			'three decimals'   => array( '1.999' ),
-			'letters mixed'    => array( '10abc' ),
+			'negative'       => array( '-5.00' ),
+			'zero'           => array( '0' ),
+			'zero decimal'   => array( '0.00' ),
+			'non-numeric'    => array( 'abc' ),
+			'three decimals' => array( '1.999' ),
+			'letters mixed'  => array( '10abc' ),
 		);
 	}
 
@@ -146,6 +147,7 @@ class PayPal_Attribute_Mapper_Test extends TestCase {
 	 * Test that valid price formats are accepted.
 	 *
 	 * @param string $price The valid price to test.
+	 * @dataProvider valid_price_provider
 	 */
 	#[DataProvider( 'valid_price_provider' )]
 	public function test_validate_accepts_valid_price( $price ) {
@@ -167,12 +169,12 @@ class PayPal_Attribute_Mapper_Test extends TestCase {
 	 */
 	public static function valid_price_provider(): array {
 		return array(
-			'integer'        => array( '10' ),
-			'one decimal'    => array( '29.9' ),
-			'two decimals'   => array( '29.99' ),
-			'large amount'   => array( '9999' ),
-			'small amount'   => array( '1' ),
-			'one cent'       => array( '0.01' ),
+			'integer'      => array( '10' ),
+			'one decimal'  => array( '29.9' ),
+			'two decimals' => array( '29.99' ),
+			'large amount' => array( '9999' ),
+			'small amount' => array( '1' ),
+			'one cent'     => array( '0.01' ),
 		);
 	}
 
@@ -326,7 +328,7 @@ class PayPal_Attribute_Mapper_Test extends TestCase {
 		$this->assertCount( 1, $request['line_items'] );
 		$this->assertEquals( 'Widget', $request['line_items'][0]['name'] );
 		$this->assertEquals( 'EUR', $request['line_items'][0]['unit_amount']['currency_code'] );
-		$this->assertEquals( '29.99', $request['line_items'][0]['unit_amount']['value'] );
+		$this->assertSame( '29.99', $request['line_items'][0]['unit_amount']['value'] );
 	}
 
 	/**
@@ -418,7 +420,7 @@ class PayPal_Attribute_Mapper_Test extends TestCase {
 
 		$this->assertEquals( 'Fancy Widget', $attributes['productName'] );
 		$this->assertEquals( 'GBP', $attributes['currencyCode'] );
-		$this->assertEquals( '49.99', $attributes['price'] );
+		$this->assertSame( '49.99', $attributes['price'] );
 		$this->assertEquals( 'A very fancy widget.', $attributes['productDescription'] );
 		$this->assertEquals( 'https://example.com/fancy.png', $attributes['imageUrl'] );
 		$this->assertEquals( 'https://example.com/thanks', $attributes['returnUrl'] );
@@ -482,7 +484,7 @@ class PayPal_Attribute_Mapper_Test extends TestCase {
 		$this->assertEquals( 'Pay Now', $merged['buttonText'] );
 		$this->assertEquals( 'primary', $merged['buttonType'] );
 		$this->assertEquals( 'New Name', $merged['productName'] );
-		$this->assertEquals( '20.00', $merged['price'] );
+		$this->assertSame( '20.00', $merged['price'] );
 		$this->assertEquals( 'PLB-MERGE123', $merged['resourceId'] );
 	}
 
@@ -496,15 +498,15 @@ class PayPal_Attribute_Mapper_Test extends TestCase {
 		);
 
 		$from_api = array(
-			'productName' => 'Updated Name',
-			'price'       => '15.00',
+			'productName'  => 'Updated Name',
+			'price'        => '15.00',
 			'isApiManaged' => true,
 		);
 
 		$merged = PayPal_Attribute_Mapper::merge_response_attributes( $existing, $from_api );
 
 		$this->assertEquals( 'Updated Name', $merged['productName'] );
-		$this->assertEquals( '15.00', $merged['price'] );
+		$this->assertSame( '15.00', $merged['price'] );
 		$this->assertTrue( $merged['isApiManaged'] );
 	}
 
@@ -523,6 +525,7 @@ class PayPal_Attribute_Mapper_Test extends TestCase {
 	 * Test that invalid resource ID formats are rejected.
 	 *
 	 * @param string $id The invalid ID to test.
+	 * @dataProvider invalid_resource_id_provider
 	 */
 	#[DataProvider( 'invalid_resource_id_provider' )]
 	public function test_is_valid_resource_id_rejects_invalid_format( $id ) {
@@ -536,13 +539,13 @@ class PayPal_Attribute_Mapper_Test extends TestCase {
 	 */
 	public static function invalid_resource_id_provider(): array {
 		return array(
-			'empty string'   => array( '' ),
-			'no prefix'      => array( 'ABC123DEF456' ),
-			'wrong prefix'   => array( 'XYZ-ABC123' ),
-			'spaces'         => array( 'PLB-ABC 123' ),
-			'special chars'  => array( 'PLB-ABC!@#' ),
-			'prefix only'    => array( 'PLB-' ),
-			'sql injection'  => array( "PLB-'; DROP TABLE--" ),
+			'empty string'  => array( '' ),
+			'no prefix'     => array( 'ABC123DEF456' ),
+			'wrong prefix'  => array( 'XYZ-ABC123' ),
+			'spaces'        => array( 'PLB-ABC 123' ),
+			'special chars' => array( 'PLB-ABC!@#' ),
+			'prefix only'   => array( 'PLB-' ),
+			'sql injection' => array( "PLB-'; DROP TABLE--" ),
 		);
 	}
 
