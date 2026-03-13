@@ -1,0 +1,30 @@
+diff --git a/projects/packages/paypal-payments/src/paypal-payment-buttons/class-paypal-oauth.php b/projects/packages/paypal-payments/src/paypal-payment-buttons/class-paypal-oauth.php
+index 76fc2adc72..c6ab078936 100644
+--- a/projects/packages/paypal-payments/src/paypal-payment-buttons/class-paypal-oauth.php
++++ b/projects/packages/paypal-payments/src/paypal-payment-buttons/class-paypal-oauth.php
+@@ -77,10 +77,10 @@ class PayPal_OAuth {
+ 	/**
+ 	 * Get the current PayPal API environment.
+ 	 *
+-	 * @return string 'sandbox' or 'production'. Defaults to 'sandbox'.
++	 * @return string 'sandbox' or 'production'. Defaults to 'production'.
+ 	 */
+ 	public static function get_environment() {
+-		return get_option( self::ENVIRONMENT_OPTION_KEY, 'sandbox' );
++		return get_option( self::ENVIRONMENT_OPTION_KEY, 'production' );
+ 	}
+ 
+ 	/**
+diff --git a/projects/packages/paypal-payments/src/paypal-payment-buttons/class-paypal-rest-controller.php b/projects/packages/paypal-payments/src/paypal-payment-buttons/class-paypal-rest-controller.php
+index b54d67955e..ee98ee7dd2 100644
+--- a/projects/packages/paypal-payments/src/paypal-payment-buttons/class-paypal-rest-controller.php
++++ b/projects/packages/paypal-payments/src/paypal-payment-buttons/class-paypal-rest-controller.php
+@@ -78,7 +78,7 @@ class PayPal_REST_Controller {
+ 						'environment'   => array(
+ 							'required'          => false,
+ 							'type'              => 'string',
+-							'default'           => 'sandbox',
++							'default'           => 'production',
+ 							'enum'              => array( 'sandbox', 'production' ),
+ 							'sanitize_callback' => 'sanitize_text_field',
+ 							'description'       => __( 'PayPal environment: sandbox or production.', 'jetpack-paypal-payments' ),
