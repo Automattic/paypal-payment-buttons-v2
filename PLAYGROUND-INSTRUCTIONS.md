@@ -10,7 +10,7 @@ Setup takes a minute or two — you'll see progress messages while it installs p
 
 ## After it loads
 
-Everything is already set up and activated for you: Jetpack, the PayPal Payment Buttons plugin, and sandbox PayPal credentials.
+Everything is already set up and activated for you: the PayPal Payment Buttons plugin and sandbox PayPal credentials.
 
 ### View the demo posts
 
