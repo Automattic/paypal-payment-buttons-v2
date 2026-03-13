@@ -11,7 +11,6 @@
 namespace Automattic\Jetpack\PaypalPayments;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -453,7 +452,7 @@ class PayPal_REST_Controller_Test extends TestCase {
 						'code'    => $status_code,
 						'message' => '',
 					),
-					'body'     => is_array( $body ) ? wp_json_encode( $body ) : $body,
+					'body'     => is_array( $body ) ? wp_json_encode( $body, JSON_UNESCAPED_SLASHES ) : $body,
 				);
 			},
 			10,

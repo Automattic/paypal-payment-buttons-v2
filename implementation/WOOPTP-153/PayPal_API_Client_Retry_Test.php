@@ -11,7 +11,6 @@
 namespace Automattic\Jetpack\PaypalPayments;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -50,7 +49,7 @@ class PayPal_API_Client_Retry_Test extends TestCase {
 	 * Test that BACKOFF_BASE_SECONDS constant exists and is reasonable.
 	 */
 	public function test_backoff_base_seconds_constant_exists() {
-		$this->assertEquals( 1.0, PayPal_API_Client::BACKOFF_BASE_SECONDS );
+		$this->assertSame( 1.0, PayPal_API_Client::BACKOFF_BASE_SECONDS );
 	}
 
 	/**
@@ -266,7 +265,8 @@ class PayPal_API_Client_Retry_Test extends TestCase {
 						array(
 							'name'    => 'INTERNAL_SERVER_ERROR',
 							'message' => 'An internal server error has occurred.',
-						)
+						),
+						JSON_UNESCAPED_SLASHES
 					),
 				);
 			},
@@ -310,7 +310,8 @@ class PayPal_API_Client_Retry_Test extends TestCase {
 							array(
 								'name'    => 'INTERNAL_SERVER_ERROR',
 								'message' => 'An internal server error has occurred.',
-							)
+							),
+							JSON_UNESCAPED_SLASHES
 						),
 					);
 				}
@@ -324,7 +325,8 @@ class PayPal_API_Client_Retry_Test extends TestCase {
 						array(
 							'items'       => array(),
 							'total_items' => 0,
-						)
+						),
+						JSON_UNESCAPED_SLASHES
 					),
 				);
 			},
@@ -364,7 +366,8 @@ class PayPal_API_Client_Retry_Test extends TestCase {
 								'access_token' => 'refreshed_token_' . $request_count,
 								'token_type'   => 'Bearer',
 								'expires_in'   => 32400,
-							)
+							),
+							JSON_UNESCAPED_SLASHES
 						),
 					);
 				}
@@ -382,7 +385,8 @@ class PayPal_API_Client_Retry_Test extends TestCase {
 							array(
 								'name'    => 'NOT_AUTHORIZED',
 								'message' => 'Authorization failed.',
-							)
+							),
+							JSON_UNESCAPED_SLASHES
 						),
 					);
 				}
@@ -396,7 +400,8 @@ class PayPal_API_Client_Retry_Test extends TestCase {
 						array(
 							'items'       => array(),
 							'total_items' => 0,
-						)
+						),
+						JSON_UNESCAPED_SLASHES
 					),
 				);
 			},
@@ -435,8 +440,9 @@ class PayPal_API_Client_Retry_Test extends TestCase {
 		$this->assertInstanceOf( \WP_Error::class, $result );
 		// The error code should indicate a timeout.
 		$code = $result->get_error_code();
-		$this->assertTrue(
-			in_array( $code, array( 'paypal_api_timeout', 'paypal_api_request_failed', 'paypal_api_retry_exhausted' ), true ),
+		$this->assertContains(
+			$code,
+			array( 'paypal_api_timeout', 'paypal_api_request_failed', 'paypal_api_retry_exhausted' ),
 			'Error code should be timeout-related, got: ' . $code
 		);
 	}
@@ -464,8 +470,9 @@ class PayPal_API_Client_Retry_Test extends TestCase {
 		$this->assertInstanceOf( \WP_Error::class, $result );
 		// The immediate error should be request_failed (not timeout) before retry exhaustion.
 		$code = $result->get_error_code();
-		$this->assertTrue(
-			in_array( $code, array( 'paypal_api_request_failed', 'paypal_api_retry_exhausted' ), true ),
+		$this->assertContains(
+			$code,
+			array( 'paypal_api_request_failed', 'paypal_api_retry_exhausted' ),
 			'Error code should be request-failed-related, got: ' . $code
 		);
 	}
@@ -498,7 +505,8 @@ class PayPal_API_Client_Retry_Test extends TestCase {
 						array(
 							'name'    => 'INVALID_REQUEST',
 							'message' => 'Request is not well-formed.',
-						)
+						),
+						JSON_UNESCAPED_SLASHES
 					),
 				);
 			},
@@ -509,7 +517,7 @@ class PayPal_API_Client_Retry_Test extends TestCase {
 		$result = PayPal_API_Client::create_resource( array( 'type' => 'BUY_NOW' ) );
 
 		$this->assertInstanceOf( \WP_Error::class, $result );
-		$this->assertEquals( 1, $request_count, '400 errors should not trigger retries' );
+		$this->assertSame( 1, $request_count, '400 errors should not trigger retries' );
 	}
 
 	/**
@@ -538,7 +546,8 @@ class PayPal_API_Client_Retry_Test extends TestCase {
 						array(
 							'name'    => 'UNPROCESSABLE_ENTITY',
 							'message' => 'The request could not be processed.',
-						)
+						),
+						JSON_UNESCAPED_SLASHES
 					),
 				);
 			},
@@ -549,7 +558,7 @@ class PayPal_API_Client_Retry_Test extends TestCase {
 		$result = PayPal_API_Client::create_resource( array( 'type' => 'BUY_NOW' ) );
 
 		$this->assertInstanceOf( \WP_Error::class, $result );
-		$this->assertEquals( 1, $request_count, '422 errors should not trigger retries' );
+		$this->assertSame( 1, $request_count, '422 errors should not trigger retries' );
 	}
 
 	// --- URL validation on get_resource too ---
@@ -608,7 +617,7 @@ class PayPal_API_Client_Retry_Test extends TestCase {
 						'code'    => $status_code,
 						'message' => '',
 					),
-					'body'     => is_array( $body ) ? wp_json_encode( $body ) : $body,
+					'body'     => is_array( $body ) ? wp_json_encode( $body, JSON_UNESCAPED_SLASHES ) : $body,
 				);
 			},
 			10,
