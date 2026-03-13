@@ -37,10 +37,32 @@ class PayPal_Attribute_Mapper {
 	 * @var array
 	 */
 	const SUPPORTED_CURRENCIES = array(
-		'USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CNY', 'CHF',
-		'SEK', 'NOK', 'DKK', 'NZD', 'SGD', 'HKD', 'MXN', 'BRL',
-		'PLN', 'CZK', 'HUF', 'ILS', 'MYR', 'PHP', 'TWD', 'THB',
-		'INR', 'RUB',
+		'USD',
+		'EUR',
+		'GBP',
+		'CAD',
+		'AUD',
+		'JPY',
+		'CNY',
+		'CHF',
+		'SEK',
+		'NOK',
+		'DKK',
+		'NZD',
+		'SGD',
+		'HKD',
+		'MXN',
+		'BRL',
+		'PLN',
+		'CZK',
+		'HUF',
+		'ILS',
+		'MYR',
+		'PHP',
+		'TWD',
+		'THB',
+		'INR',
+		'RUB',
 	);
 
 	/**
@@ -190,7 +212,7 @@ class PayPal_Attribute_Mapper {
 		}
 
 		// Required: price.
-		if ( empty( $attributes['price'] ) ) {
+		if ( ! isset( $attributes['price'] ) || '' === $attributes['price'] ) {
 			return new WP_Error(
 				'missing_price',
 				__( 'Price is required.', 'jetpack-paypal-payments' ),

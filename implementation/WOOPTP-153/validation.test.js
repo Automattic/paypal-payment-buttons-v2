@@ -5,11 +5,11 @@
  * validatePrice, validateProductName, validateDescription,
  * getUserFriendlyError, and the VALID_CURRENCY_CODES constant.
  *
- * @package automattic/jetpack-paypal-payments
+ * @package
  */
 
 jest.mock( '@wordpress/i18n', () => ( {
-	__: ( str ) => str,
+	__: str => str,
 } ) );
 
 import {
@@ -20,7 +20,7 @@ import {
 	VALID_CURRENCY_CODES,
 	MAX_NAME_LENGTH,
 	MAX_DESCRIPTION_LENGTH,
-} from './validation';
+} from '../../src/paypal-payment-buttons/validation';
 
 describe( 'validatePrice', () => {
 	it( 'returns an error when value is null', () => {
@@ -129,19 +129,14 @@ describe( 'getUserFriendlyError', () => {
 
 	it( 'returns a generic fallback for unknown errors', () => {
 		const err = {};
-		expect( getUserFriendlyError( err ) ).toBe(
-			'An unexpected error occurred. Please try again.'
-		);
+		expect( getUserFriendlyError( err ) ).toBe( 'An unexpected error occurred. Please try again.' );
 	} );
 } );
 
 describe( 'VALID_CURRENCY_CODES', () => {
-	it.each( [ 'USD', 'EUR', 'GBP', 'JPY' ] )(
-		'contains %s',
-		( code ) => {
-			expect( VALID_CURRENCY_CODES.has( code ) ).toBe( true );
-		}
-	);
+	it.each( [ 'USD', 'EUR', 'GBP', 'JPY' ] )( 'contains %s', code => {
+		expect( VALID_CURRENCY_CODES.has( code ) ).toBe( true );
+	} );
 
 	it( 'does not contain an invalid currency code', () => {
 		expect( VALID_CURRENCY_CODES.has( 'XYZ' ) ).toBe( false );

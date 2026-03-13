@@ -4,7 +4,12 @@
  *
  * Provides typed CRUD operations for the /v1/checkout/payment-resources
  * endpoint. All requests are authenticated via PayPal_OAuth and include
- * the BN code attribution header.
+ * a PayPal-Request-Id header for idempotency.
+ *
+ * Note: The PayPal-Partner-Attribution-Id header is NOT supported on
+ * Payment Links API endpoints. BN code attribution is applied via the
+ * `at_code` query parameter on payment link URLs instead (see
+ * PayPal_Payment_Buttons::render_api_managed_button).
  *
  * Updated for WOOPTP-151: Token auto-refresh on 403 with retry,
  * network timeout handling with exponential backoff, and PayPal
@@ -239,8 +244,11 @@ class PayPal_API_Client {
 		$last_error   = null;
 		$auth_retried = false;
 
+		// Generate a single request ID for all retry attempts to ensure idempotency.
+		$request_id = wp_generate_uuid4();
+
 		for ( $attempt = 0; $attempt <= self::MAX_RETRIES; $attempt++ ) {
-			$result = self::make_request( $method, $endpoint, $body, $expected_status );
+			$result = self::make_request( $method, $endpoint, $body, $expected_status, $request_id );
 
 			// Success — return immediately.
 			if ( ! is_wp_error( $result ) ) {
@@ -263,7 +271,8 @@ class PayPal_API_Client {
 				}
 
 				// Retry the request with the fresh token (don't increment attempt).
-				$retry_result = self::make_request( $method, $endpoint, $body, $expected_status );
+				// Use a new request ID since this is a distinct attempt after re-auth.
+				$retry_result = self::make_request( $method, $endpoint, $body, $expected_status, wp_generate_uuid4() );
 				if ( ! is_wp_error( $retry_result ) ) {
 					return $retry_result;
 				}
@@ -300,7 +309,11 @@ class PayPal_API_Client {
 		}
 
 		// All retries exhausted — return the last error.
-		return $last_error ?: new \WP_Error(
+		if ( $last_error ) {
+			return $last_error;
+		}
+
+		return new \WP_Error(
 			'paypal_api_retry_exhausted',
 			__( 'PayPal is temporarily unavailable after multiple attempts. Please try again later.', 'jetpack-paypal-payments' ),
 			array( 'status' => 503 )
@@ -310,16 +323,21 @@ class PayPal_API_Client {
 	/**
 	 * Make an authenticated request to the PayPal API.
 	 *
-	 * Handles token retrieval, header construction (including BN code),
-	 * response validation, and error mapping.
+	 * Handles token retrieval, header construction, response validation,
+	 * and error mapping. Includes PayPal-Request-Id for idempotency.
+	 *
+	 * Note: PayPal-Partner-Attribution-Id is NOT supported on Payment Links
+	 * API endpoints. BN code attribution is handled via the `at_code` query
+	 * parameter on payment link URLs in the render layer.
 	 *
 	 * @param string     $method          HTTP method (GET, POST, PUT, DELETE).
 	 * @param string     $endpoint        API endpoint path (appended to base URL).
 	 * @param array|null $body            Request body data (JSON-encoded for POST/PUT).
 	 * @param int        $expected_status Expected HTTP status code for success.
+	 * @param string     $request_id      Optional. Idempotency key. Auto-generated if empty.
 	 * @return array|null|\WP_Error Decoded response body, null for 204, or WP_Error.
 	 */
-	private static function make_request( $method, $endpoint, $body, $expected_status ) {
+	private static function make_request( $method, $endpoint, $body, $expected_status, $request_id = '' ) {
 		$token = PayPal_OAuth::get_access_token();
 		if ( is_wp_error( $token ) ) {
 			return $token;
@@ -327,19 +345,24 @@ class PayPal_API_Client {
 
 		$url = PayPal_OAuth::get_base_url() . $endpoint;
 
+		// Generate a unique request ID for idempotency if not provided.
+		if ( empty( $request_id ) ) {
+			$request_id = wp_generate_uuid4();
+		}
+
 		$args = array(
 			'method'  => $method,
 			'timeout' => self::REQUEST_TIMEOUT,
 			'headers' => array(
-				'Authorization'                => 'Bearer ' . $token,
-				'Content-Type'                 => 'application/json',
-				'Accept'                       => 'application/json',
-				'PayPal-Partner-Attribution-Id' => PayPal_Payment_Buttons::PAYPAL_PARTNER_ATTRIBUTION_ID,
+				'Authorization'     => 'Bearer ' . $token,
+				'Content-Type'      => 'application/json',
+				'Accept'            => 'application/json',
+				'PayPal-Request-Id' => $request_id,
 			),
 		);
 
 		if ( null !== $body && in_array( $method, array( 'POST', 'PUT' ), true ) ) {
-			$args['body'] = wp_json_encode( $body );
+			$args['body'] = wp_json_encode( $body, JSON_UNESCAPED_SLASHES );
 		}
 
 		$response = wp_remote_request( $url, $args );
