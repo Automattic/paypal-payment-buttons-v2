@@ -13,7 +13,7 @@
 			"step": "installPlugin",
 			"pluginData": {
 				"resource": "url",
-				"url": "https://github.com/slash1andy/jetpack/archive/refs/heads/wooptp-158-159-api-fixes.zip",
+				"url": "https://github.com/slash1andy/jetpack/archive/refs/heads/paypal-payment-buttons-v2.zip",
 				"caption": "Installing Jetpack (PayPal Payment Buttons V2 branch)"
 			},
 			"options": {
