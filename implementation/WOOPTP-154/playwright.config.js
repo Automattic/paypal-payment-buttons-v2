@@ -4,7 +4,7 @@
  * Designed to work with Jetpack's existing Playwright infrastructure.
  * Uses a local WordPress test site with mocked PayPal API responses.
  *
- * @package automattic/jetpack-paypal-payments
+ * @package
  * @since 0.8.0
  */
 
@@ -35,15 +35,13 @@ module.exports = defineConfig( {
 		},
 	],
 
-	/**
-	 * Web server config for local development.
-	 * Assumes wp-env or similar local WordPress environment is already running.
-	 * Uncomment and configure if using wp-env:
-	 *
-	 * webServer: {
-	 *     command: 'npx wp-env start',
-	 *     url: 'http://localhost:8889',
-	 *     reuseExistingServer: ! process.env.CI,
-	 * },
-	 */
+	// Web server config for local development.
+	// Assumes wp-env or similar local WordPress environment is already running.
+	// Uncomment and configure if using wp-env:
+	//
+	// webServer: {
+	//   command: 'npx wp-env start',
+	//   url: 'http://localhost:8889',
+	//   reuseExistingServer: ! process.env.CI,
+	// },
 } );
