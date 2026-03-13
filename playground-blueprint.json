@@ -8,9 +8,6 @@
 	"features": {
 		"networking": true
 	},
-	"plugins": [
-		"gutenberg"
-	],
 	"steps": [
 		{
 			"step": "installPlugin",
