@@ -1,0 +1,34 @@
+{
+	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
+	"landingPage": "/wp-admin/",
+	"preferredVersions": {
+		"php": "8.2",
+		"wp": "6.7"
+	},
+	"features": {
+		"networking": true
+	},
+	"steps": [
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "url",
+				"url": "https://github.com/Automattic/paypal-payment-buttons-v2/releases/download/v0.4.1-playground/paypal-payment-buttons.zip",
+				"caption": "Installing PayPal Payment Buttons"
+			},
+			"options": {
+				"activate": true
+			}
+		},
+		{
+			"step": "login",
+			"username": "admin",
+			"password": "password"
+		},
+		{
+			"step": "writeFile",
+			"path": "/wordpress/wp-content/mu-plugins/debug-block.php",
+			"data": "<?php add_action('admin_notices', function() { $reg = WP_Block_Type_Registry::get_instance(); $block = $reg->get_registered('jetpack/paypal-payment-buttons'); $dir = WP_PLUGIN_DIR . '/paypal-payment-buttons'; $dist = $dir . '/jetpack_vendor/automattic/jetpack-paypal-payments/dist/paypal-payment-buttons'; $msg = 'BLOCK: ' . ($block ? 'YES' : 'NO'); $msg .= ' | PLUGIN DIR: ' . (is_dir($dir) ? 'YES' : 'NO'); $msg .= ' | DIST DIR: ' . (is_dir($dist) ? 'YES' : 'NO'); $msg .= ' | BLOCK JSON: ' . (file_exists($dist . '/block.json') ? 'YES' : 'NO'); $msg .= ' | EDITOR JS: ' . (file_exists($dist . '/editor.js') ? 'YES' : 'NO'); $msg .= ' | ACTIVE: ' . implode(', ', get_option('active_plugins')); if ($block) { $msg .= ' | HANDLES: ' . implode(', ', $block->editor_script_handles); } echo '<div class=\"notice notice-info\"><p><strong>Debug:</strong> ' . esc_html($msg) . '</p></div>'; });"
+		}
+	]
+}
