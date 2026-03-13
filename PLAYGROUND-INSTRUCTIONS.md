@@ -10,15 +10,22 @@ Setup takes a minute or two — you'll see progress messages while it installs p
 
 ## After it loads
 
-You'll land directly on a page called **"This is a testing page for PayPal buttons"** — this is the demo page with a PayPal button rendered on it.
-
 Everything is already set up and activated for you: Jetpack, the PayPal Payment Buttons plugin, and sandbox PayPal credentials.
+
+### View the demo posts
+
+1. In the left sidebar, click **Posts**.
+2. You'll see three demo posts:
+   - **PayPal Button — Stacked Layout** — A gold PayPal button with a "Debit or Credit Card" option below it ($29.99 USD)
+   - **PayPal Button — Single Layout** — Just the PayPal button by itself ($9.99 USD)
+   - **PayPal Button — Multiple Currencies** — Two buttons on one page, one in EUR and one in GBP
+3. Click any post title, then click **View Post** to see how it looks on the front end.
 
 ## Things to try
 
-- **See the PayPal button on the front end** — You should already be looking at it. The test page has a PayPal button that connects to PayPal's sandbox.
-- **Edit the button in the block editor** — Click **Edit Page** in the admin bar at the top to open the editor. Click on the PayPal button block to see its settings on the right side (product name, price, description).
-- **Create a new button from scratch** — In the left sidebar go to Pages > Add New Page, click the **+** button in the top-left of the editor, search for "PayPal", and add the PayPal Payment Buttons block.
+- **See the buttons as a visitor would** — Click "View Post" on any demo post to see the rendered PayPal buttons.
+- **Edit a button** — Open a demo post, click Edit, then click the PayPal button block. The settings panel on the right lets you change the product name, price, currency, and layout.
+- **Create a new button from scratch** — Go to Posts > Add New Post, click the **+** button in the top-left of the editor, search for "PayPal", and add the PayPal Payment Buttons block.
 
 ## Good to know
 
