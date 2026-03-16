@@ -35,6 +35,7 @@ import {
 import { useState, useEffect, useCallback, useMemo } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 import PayPalButtonPreview from './paypal-button-preview';
+import VariantBuilder, { validateVariants } from './variant-builder';
 
 /**
  * Supported currencies for the currency selector.
@@ -209,6 +210,8 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 		productDescription,
 		returnUrl,
 		imageUrl,
+		variantsEnabled,
+		variants,
 	} = attributes;
 
 	const blockProps = useBlockProps();
@@ -301,10 +304,21 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 	);
 
 	/**
-	 * Whether the form is valid (no validation errors on required fields).
+	 * Variant validation errors (empty array if valid or disabled).
+	 */
+	const variantErrors = useMemo(
+		() => validateVariants( variantsEnabled, variants ),
+		[ variantsEnabled, variants ]
+	);
+
+	/**
+	 * Whether the form is valid (no validation errors on required fields or variants).
 	 */
 	const isFormValid =
-		! validationErrors.productName && ! validationErrors.price && ! validationErrors.currencyCode;
+		! validationErrors.productName &&
+		! validationErrors.price &&
+		! validationErrors.currencyCode &&
+		variantErrors.length === 0;
 
 	/**
 	 * Check PayPal connection status on mount.
@@ -441,11 +455,21 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 					},
 					...( productDescription ? { description: productDescription } : {} ),
 					...( imageUrl ? { image_url: imageUrl } : {} ),
+					...( variantsEnabled && variants ? { variants } : {} ),
 				},
 			],
 			...( returnUrl ? { return_url: returnUrl } : {} ),
 		} ),
-		[ productName, price, currencyCode, productDescription, returnUrl, imageUrl ]
+		[
+			productName,
+			price,
+			currencyCode,
+			productDescription,
+			returnUrl,
+			imageUrl,
+			variantsEnabled,
+			variants,
+		]
 	);
 
 	/**
@@ -517,6 +541,8 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 		setSuccessMessage( null );
 		setIsCreating( true );
 
+		let isRecreating = false;
+
 		apiFetch( {
 			path: `${ API_BASE }/buttons/${ resourceId }`,
 			method: 'PUT',
@@ -531,27 +557,46 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 				setTouchedFields( {} );
 			} )
 			.catch( err => {
-				const errorMessage = getUserFriendlyError( err );
-
-				// If the resource was not found (404), clear stale state and prompt re-creation.
+				// If the resource was deleted from PayPal (404), automatically
+				// re-create it as a new button with the same product data.
+				// This handles demo/playground blocks and buttons deleted outside WordPress.
 				if ( err.code === 'paypal_api_resource_not_found' || err.data?.status === 404 ) {
-					setAttributes( {
-						isApiManaged: false,
-						resourceId: undefined,
-						paymentLink: undefined,
-					} );
-					setError(
-						__(
-							'This button no longer exists on PayPal. Please create a new one.',
-							'jetpack-paypal-payments'
-						)
-					);
-				} else {
-					setError( errorMessage );
+					isRecreating = true;
+					apiFetch( {
+						path: `${ API_BASE }/buttons`,
+						method: 'POST',
+						data: buildRequestData(),
+					} )
+						.then( response => {
+							setAttributes( {
+								isApiManaged: true,
+								resourceId: response.id,
+								paymentLink: response.payment_link,
+							} );
+							setSuccessMessage(
+								__(
+									'Button re-created on PayPal with a new payment link.',
+									'jetpack-paypal-payments'
+								)
+							);
+							setIsEditing( false );
+							setTouchedFields( {} );
+						} )
+						.catch( createErr => {
+							setError( getUserFriendlyError( createErr ) );
+						} )
+						.finally( () => {
+							setIsCreating( false );
+						} );
+					return;
 				}
+
+				setError( getUserFriendlyError( err ) );
 			} )
 			.finally( () => {
-				setIsCreating( false );
+				if ( ! isRecreating ) {
+					setIsCreating( false );
+				}
 			} );
 	}, [ resourceId, buildRequestData, paymentLink, setAttributes, isFormValid ] );
 
@@ -965,6 +1010,8 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 				/>
 			</PanelBody>
 
+			{ /* Variant builder moved inline to the block form for discoverability. */ }
+
 			{ hasButton && (
 				<PanelBody
 					title={ __( 'PayPal Connection', 'jetpack-paypal-payments' ) }
@@ -976,7 +1023,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 					<p>
 						{ __( 'Environment:', 'jetpack-paypal-payments' ) } <strong>{ environment }</strong>
 					</p>
-					<div style={ { display: 'flex', gap: '8px', marginTop: '12px' } }>
+					<div className="jetpack-paypal-payment-buttons__destructive-actions">
 						<Button
 							variant="secondary"
 							isDestructive
@@ -1047,6 +1094,8 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 						productDescription={ productDescription }
 						paymentLink={ paymentLink }
 						imageUrl={ imageUrl }
+						variantsEnabled={ variantsEnabled }
+						variants={ variants }
 					/>
 				</div>
 			</div>
@@ -1202,6 +1251,16 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 						{ __( 'Shown on the PayPal checkout page.', 'jetpack-paypal-payments' ) }
 					</p>
 				</div>
+				<div className="jetpack-paypal-payment-buttons__variants-section">
+					<VariantBuilder
+						enabled={ variantsEnabled }
+						variants={ variants }
+						currencyCode={ currencyCode || 'USD' }
+						onChange={ updates => setAttributes( updates ) }
+						disabled={ isCreating }
+					/>
+				</div>
+
 				<TextControl
 					label={ __( 'Return URL (optional)', 'jetpack-paypal-payments' ) }
 					value={ returnUrl || '' }

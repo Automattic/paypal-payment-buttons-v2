@@ -450,3 +450,128 @@
 		margin: 4px 0;
 	}
 }
+
+// Variant builder inline section.
+.jetpack-paypal-payment-buttons__variants-section {
+	margin: 16px 0;
+	padding: 16px;
+	border: 1px solid #e0e0e0;
+	border-radius: 4px;
+	background: #fafafa;
+}
+
+// Variant builder heading.
+.jetpack-paypal-variants__heading {
+	margin: 0 0 8px;
+	font-size: 13px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: #1e1e1e;
+}
+
+.jetpack-paypal-variants__empty-help {
+	font-size: 13px;
+	color: #757575;
+	font-style: italic;
+	margin: 8px 0 12px;
+}
+
+.jetpack-paypal-variants__limit-notice {
+	font-size: 12px;
+	color: #757575;
+	margin: 4px 0;
+}
+
+.jetpack-paypal-variants__counter {
+	font-size: 12px;
+	color: #757575;
+	margin-left: 8px;
+}
+
+// Variant builder option groups.
+.jetpack-paypal-variants__group,
+.jetpack-paypal-variants__dimension {
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 12px;
+	margin-bottom: 12px;
+	background: #f9f9f9;
+}
+
+.jetpack-paypal-variants__dimension-header {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+
+.jetpack-paypal-variants__dimension-controls {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.jetpack-paypal-variants__options {
+	margin-left: 12px;
+	padding-left: 12px;
+	border-left: 2px solid #ddd;
+}
+
+.jetpack-paypal-variants__option {
+	display: flex;
+	gap: 8px;
+	align-items: flex-end;
+	margin-bottom: 8px;
+
+	.components-text-control__input {
+		min-width: 0;
+	}
+
+	@media ( max-width: 480px ) {
+		flex-direction: column;
+		align-items: stretch;
+	}
+}
+
+.jetpack-paypal-variants__remove-option {
+	min-width: 44px;
+	min-height: 44px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.jetpack-paypal-variants__option-actions {
+	margin-top: 4px;
+}
+
+.jetpack-paypal-variants__add-group,
+.jetpack-paypal-variants__add-dimension {
+	margin-top: 8px;
+	display: flex;
+	align-items: center;
+}
+
+// Variant summary badges in preview.
+.jetpack-paypal-button-preview__variants {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	margin-bottom: 8px;
+}
+
+.jetpack-paypal-button-preview__variant-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 10px;
+	background: #e8e8e8;
+	font-size: 11px;
+	color: #555;
+}
+
+.jetpack-paypal-payment-buttons__destructive-actions {
+	display: flex;
+	gap: 8px;
+	margin-top: 12px;
+}
