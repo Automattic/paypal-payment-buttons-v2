@@ -44,11 +44,11 @@ Replace the paste-code block editor experience with a fully API-driven flow usin
 ### 4.1 User Flow (Target State)
 
 1. Merchant opens block editor, types `/pay` or adds PayPal Payment Buttons block
-2. Block presents a clean form: product name, price, currency, button type
-3. Merchant fills in details and clicks "Create Button"
-4. Plugin calls PayPal API server-side to create the payment resource
-5. Block renders a live preview of the PayPal button
-6. On the frontend, the button renders with A8C BN code injected for revenue attribution
+2. Block presents a clean form: product name, price, currency, button/link display type
+3. Merchant fills in details and clicks "Create Button & Link"
+4. Plugin calls PayPal API server-side to create the payment resource — returning both a resource ID and a `payment_link` URL
+5. Block renders a live preview of the PayPal button; the `payment_link` URL is also available for direct sharing or embedding as a text link
+6. On the frontend, the button (or link) renders with A8C BN code injected for revenue attribution
 
 ### 4.2 Architecture
 
@@ -98,7 +98,7 @@ PayPal JS SDK renders hosted button with BN attribution
 
 ### 5.1 In Scope (Phase 1 — WordCamp Asia)
 
-- API-driven button creation (Buy Now type at minimum)
+- API-driven button and payment link creation (Buy Now type at minimum) — each resource provides both an embeddable button and a shareable payment URL
 - PayPal OAuth connection flow for merchant authentication
 - Server-side REST endpoints wrapping PayPal's Pay Links & Buttons API
 - BN code injection for revenue attribution
