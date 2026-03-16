@@ -45,7 +45,7 @@
 		},
 		{
 			"step": "runPHP",
-			"code": "<?php require_once 'wordpress/wp-load.php'; Automattic\\Jetpack\\PaypalPayments\\PayPal_OAuth::store_credentials( 'AXBOqFgtrx_-r_54BcViYWfAwr6wLsqwg1W9T816UK72z5nfvaSZ0jlfLWC5ok-kH4sDCs8EjD7bSyut', 'EJVcn22Mvwc07PP3OzUEn5aCOQ8DYvqQ8cbNGgrWw3oXLOoyPRIxEBakHQc4nz6CCYB6hKBYEtaaH325' ); Automattic\\Jetpack\\PaypalPayments\\PayPal_OAuth::set_environment( 'sandbox' ); ?>"
+			"code": "<?php require_once 'wordpress/wp-load.php'; update_option( 'jetpack_paypal_payment_buttons_credentials', array( 'client_id' => 'AXBOqFgtrx_DEMO_ID', 'client_secret' => 'EJVcn22Mvwc_DEMO_SECRET', 'hash' => wp_hash( 'AXBOqFgtrx_DEMO_ID' . 'EJVcn22Mvwc_DEMO_SECRET' ), 'stored_at' => time() ) ); update_option( 'jetpack_paypal_payment_buttons_environment', 'sandbox' ); ?>"
 		},
 		{
 			"step": "runPHP",
