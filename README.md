@@ -162,7 +162,7 @@ implementation/
 
 ## Key Technical Details
 
-- **OAuth:** AES-256-CBC encrypted credentials, transient + absolute-timestamp token caching (WOOPTP-165), pre-validation of Payment Links API access on connect (WOOPTP-164)
+- **OAuth:** Credentials stored in `wp_options` with `wp_hash()` integrity protection, transient + absolute-timestamp token caching (WOOPTP-165), pre-validation of Payment Links API access on connect (WOOPTP-164)
 - **API:** PayPal Pay Links & Buttons API (`/v1/checkout/payment-resources`), BN code: `WooNCPS_Ecom_Wordpress`
 - **Retry:** Exponential backoff (1s → 2s → 4s) on 500/502/503, auto token refresh on 401/403
 - **Security:** PayPal URL domain whitelist, server-side + client-side validation, `manage_options` capability checks

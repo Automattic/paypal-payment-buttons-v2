@@ -269,6 +269,7 @@ class PayPal_Payment_Buttons {
 			</a>
 			%8$s
 		</div>
+		<p class="jetpack-paypal-button__attribution">%9$s</p>
 	</div>
 </div>',
 			esc_html( $product_name ),
@@ -278,7 +279,8 @@ class PayPal_Payment_Buttons {
 			$action_url,
 			$paypal_logo,
 			esc_html( $button_text ),
-			$debit_button_html
+			$debit_button_html,
+			esc_html__( 'Powered by PayPal', 'jetpack-paypal-payments' )
 		);
 	}
 
@@ -447,6 +449,23 @@ class PayPal_Payment_Buttons {
 	 * @return void
 	 */
 	public static function init_api() {
+		add_action( 'init', array( __CLASS__, 'register_standalone_script_stubs' ), 1 );
 		add_action( 'rest_api_init', array( PayPal_REST_Controller::class, 'register_routes' ) );
+	}
+
+	/**
+	 * Register empty script stubs for Jetpack dependencies that may not be available
+	 * when the plugin runs outside the full Jetpack monorepo (e.g., WordPress Playground).
+	 *
+	 * The wp_script_is() guard ensures this is a no-op inside the full Jetpack plugin
+	 * where the real handle is already registered by the Assets package.
+	 *
+	 * @since 0.8.0
+	 * @return void
+	 */
+	public static function register_standalone_script_stubs() {
+		if ( ! wp_script_is( 'jetpack-script-data', 'registered' ) ) {
+			wp_register_script( 'jetpack-script-data', false, array(), '1.0.0', false );
+		}
 	}
 }
