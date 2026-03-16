@@ -39,7 +39,7 @@
 			"step": "setSiteOptions",
 			"options": {
 				"blogname": "PayPal Payment Buttons V2 Demo",
-				"blogdescription": "WordCamp Asia 2026 — Jetpack 15.7 Preview (v0.8.0)",
+				"blogdescription": "WordCamp Asia 2026 — Jetpack 15.7 Preview (v0.8.0 + Phase 2)",
 				"permalink_structure": "/%year%/%monthnum%/%day%/%postname%/"
 			}
 		},
@@ -58,6 +58,10 @@
 		{
 			"step": "runPHP",
 			"code": "<?php require_once 'wordpress/wp-load.php'; wp_insert_post(array('post_title' => 'PayPal Button — Multiple Currencies', 'post_name' => 'paypal-currencies', 'post_content' => '<!-- wp:jetpack/paypal-payment-buttons {\"isApiManaged\":true,\"resourceId\":\"PLB-PZZ4BXPVVQQD\",\"paymentLink\":\"https://www.paypal.com/ncp/payment/PLB-PZZ4BXPVVQQD\",\"productName\":\"Euro Product\",\"price\":\"24.99\",\"currencyCode\":\"EUR\",\"productDescription\":\"A product priced in Euros.\",\"buttonType\":\"stacked\"} /-->\n\n<!-- wp:jetpack/paypal-payment-buttons {\"isApiManaged\":true,\"resourceId\":\"PLB-3A6ADHXLFVSA\",\"paymentLink\":\"https://www.paypal.com/ncp/payment/PLB-3A6ADHXLFVSA\",\"productName\":\"British Product\",\"price\":\"19.99\",\"currencyCode\":\"GBP\",\"productDescription\":\"A product priced in British Pounds.\",\"buttonType\":\"stacked\"} /-->\n\n<!-- wp:paragraph -->\n<p>Multiple buttons on a single page with different currencies — EUR and GBP.</p>\n<!-- /wp:paragraph -->', 'post_status' => 'publish', 'post_type' => 'post')); ?>"
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require_once 'wordpress/wp-load.php'; wp_insert_post(array('post_title' => 'PayPal Button — Product Variants', 'post_name' => 'paypal-variants', 'post_content' => '<!-- wp:jetpack/paypal-payment-buttons {\"isApiManaged\":true,\"resourceId\":\"PLB-VARIANT01\",\"paymentLink\":\"https://www.paypal.com/ncp/payment/PLB-VARIANT01\",\"productName\":\"Premium T-Shirt\",\"price\":\"29.99\",\"currencyCode\":\"USD\",\"productDescription\":\"Soft cotton tee with PayPal branding.\",\"buttonType\":\"stacked\",\"variantsEnabled\":true,\"variants\":{\"dimensions\":[{\"name\":\"Color\",\"primary\":true,\"options\":[{\"label\":\"Black\",\"unit_amount\":{\"currency_code\":\"USD\",\"value\":\"29.99\"}},{\"label\":\"White\",\"unit_amount\":{\"currency_code\":\"USD\",\"value\":\"29.99\"}},{\"label\":\"Limited Gold\",\"unit_amount\":{\"currency_code\":\"USD\",\"value\":\"39.99\"}}]},{\"name\":\"Size\",\"primary\":false,\"options\":[{\"label\":\"Small\"},{\"label\":\"Medium\"},{\"label\":\"Large\"},{\"label\":\"XL\"}]}]}} /-->\n\n<!-- wp:paragraph -->\n<p>This button has product variants — 3 colors (with per-option pricing on the Limited Gold) and 4 sizes. Open the block editor to see the dimension builder in the sidebar.</p>\n<!-- /wp:paragraph -->', 'post_status' => 'publish', 'post_type' => 'post')); ?>"
 		}
 	]
 }
