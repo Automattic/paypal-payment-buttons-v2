@@ -1,4 +1,3 @@
-/* eslint-disable playwright/no-wait-for-selector, playwright/no-conditional-in-test, playwright/no-conditional-expect */
 /**
  * PayPal Payment Buttons — E2E Tests (Playwright).
  *
@@ -29,7 +28,7 @@ const { MOCK_RESPONSES, setupPayPalMocks, setupDisconnectedMocks } = require( '.
 /**
  * Navigate to a new post in the block editor.
  *
- * @param {import('@playwright/test').Page} page
+ * @param {import('@playwright/test').Page} page - Playwright page instance.
  */
 async function goToNewPost( page ) {
 	await page.goto( '/wp-admin/post-new.php' );
@@ -43,7 +42,7 @@ async function goToNewPost( page ) {
 /**
  * Insert the PayPal Payment Buttons block.
  *
- * @param {import('@playwright/test').Page} page
+ * @param {import('@playwright/test').Page} page - Playwright page instance.
  */
 async function insertPayPalBlock( page ) {
 	await page.click( 'button[aria-label="Toggle block inserter"]' );
@@ -56,18 +55,15 @@ async function insertPayPalBlock( page ) {
  * Walk through the credential wizard to the Credentials step.
  * Assumes the block is already inserted and the wizard is on the Welcome step.
  *
- * @param {import('@playwright/test').Page}    page
- * @param {import('@playwright/test').Locator} block
+ * @param {import('@playwright/test').Page}    page  - Playwright page instance.
+ * @param {import('@playwright/test').Locator} block - The PayPal block locator.
  */
 async function advanceWizardToCredentials( page, block ) {
 	// Welcome step → click Get Started.
 	await block.locator( 'button:has-text("Get Started")' ).click();
 
 	// Dashboard step → click Next (or Continue).
-	await block
-		.locator( 'button:has-text("Next"), button:has-text("Continue")' )
-		.first()
-		.click();
+	await block.locator( 'button:has-text("Next"), button:has-text("Continue")' ).first().click();
 
 	// Now on the Credentials step.
 	await expect(
@@ -79,8 +75,8 @@ async function advanceWizardToCredentials( page, block ) {
  * Walk through the full wizard and connect with valid credentials.
  * Mocks the connection endpoint to return connected after POST /connect.
  *
- * @param {import('@playwright/test').Page}    page
- * @param {import('@playwright/test').Locator} block
+ * @param {import('@playwright/test').Page}    page  - Playwright page instance.
+ * @param {import('@playwright/test').Locator} block - The PayPal block locator.
  */
 async function connectThroughWizard( page, block ) {
 	await advanceWizardToCredentials( page, block );
@@ -92,7 +88,7 @@ async function connectThroughWizard( page, block ) {
 	await block.locator( 'input[type="password"]' ).fill( 'valid_client_secret' );
 
 	// After connect POST, return connected state.
-	await page.route( '**/wp-json/jetpack/v4/paypal/connection', ( route ) => {
+	await page.route( '**/wp-json/jetpack/v4/paypal/connection', route => {
 		route.fulfill( {
 			status: 200,
 			contentType: 'application/json',
@@ -113,10 +109,10 @@ async function connectThroughWizard( page, block ) {
 /**
  * Fill in the button creation form.
  *
- * @param {import('@playwright/test').Page} page
- * @param {object}                          options
- * @param {string}                          options.name
- * @param {string}                          options.price
+ * @param {import('@playwright/test').Page} page          - Playwright page instance.
+ * @param {object}                          options       - Form field values.
+ * @param {string}                          options.name  - Product name.
+ * @param {string}                          options.price - Product price.
  */
 async function fillButtonForm( page, { name = 'Test Product', price = '29.99' } = {} ) {
 	const block = page.locator( '.wp-block-jetpack-paypal-payment-buttons' );
@@ -127,7 +123,7 @@ async function fillButtonForm( page, { name = 'Test Product', price = '29.99' } 
 /**
  * Publish the post and return the frontend URL.
  *
- * @param {import('@playwright/test').Page} page
+ * @param {import('@playwright/test').Page} page - Playwright page instance.
  * @return {string} The published post URL.
  */
 async function publishPost( page ) {
@@ -199,9 +195,7 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 
 			// Credentials step: Client ID and Client Secret fields visible.
 			await expect(
-				block
-					.locator( 'input[placeholder*="Client ID"], input[aria-label*="Client ID"]' )
-					.first()
+				block.locator( 'input[placeholder*="Client ID"], input[aria-label*="Client ID"]' ).first()
 			).toBeVisible();
 			await expect( block.locator( 'input[type="password"]' ) ).toBeVisible();
 			await expect( block.locator( 'button:has-text("Connect")' ) ).toBeVisible();
@@ -239,9 +233,7 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 			} );
 		} );
 
-		test( 'pasted credentials with whitespace are trimmed before submit', async ( {
-			page,
-		} ) => {
+		test( 'pasted credentials with whitespace are trimmed before submit', async ( { page } ) => {
 			await setupDisconnectedMocks( page );
 			await goToNewPost( page );
 			await insertPayPalBlock( page );
@@ -302,9 +294,7 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 			}
 		} );
 
-		test( 'sandbox toggle switches environment and shows warning banner', async ( {
-			page,
-		} ) => {
+		test( 'sandbox toggle switches environment and shows warning banner', async ( { page } ) => {
 			await setupDisconnectedMocks( page );
 			await goToNewPost( page );
 			await insertPayPalBlock( page );
@@ -321,15 +311,11 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 
 			// A sandbox warning banner should appear.
 			await expect(
-				block.locator(
-					'.components-notice.is-warning, [class*="sandbox-warning"]'
-				)
+				block.locator( '.components-notice.is-warning, [class*="sandbox-warning"]' )
 			).toBeVisible( { timeout: 3000 } );
 		} );
 
-		test( 'shows inline error on Credentials step with invalid credentials', async ( {
-			page,
-		} ) => {
+		test( 'shows inline error on Credentials step with invalid credentials', async ( { page } ) => {
 			await setupDisconnectedMocks( page );
 			await goToNewPost( page );
 			await insertPayPalBlock( page );
@@ -345,9 +331,9 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 			await block.locator( 'button:has-text("Connect")' ).click();
 
 			// Inline error shown within the wizard — stays on Credentials step.
-			await expect(
-				block.locator( '.components-notice.is-error, [class*="error"]' )
-			).toBeVisible( { timeout: 5000 } );
+			await expect( block.locator( '.components-notice.is-error, [class*="error"]' ) ).toBeVisible(
+				{ timeout: 5000 }
+			);
 			// Must NOT have advanced past Credentials step.
 			await expect( block.locator( 'button:has-text("Connect")' ) ).toBeVisible();
 		} );
@@ -369,10 +355,7 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 			await block.locator( 'button:has-text("Back")' ).click();
 
 			// Forward again to Credentials step.
-			await block
-				.locator( 'button:has-text("Next"), button:has-text("Continue")' )
-				.first()
-				.click();
+			await block.locator( 'button:has-text("Next"), button:has-text("Continue")' ).first().click();
 
 			// Client ID should still be populated.
 			await expect( clientIdInput ).toHaveValue( 'ATestClientId' );
@@ -392,7 +375,7 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 				.fill( 'AValidClientId123456789' );
 			await block.locator( 'input[type="password"]' ).fill( 'valid_client_secret' );
 
-			await page.route( '**/wp-json/jetpack/v4/paypal/connection', ( route ) => {
+			await page.route( '**/wp-json/jetpack/v4/paypal/connection', route => {
 				route.fulfill( {
 					status: 200,
 					contentType: 'application/json',
@@ -425,12 +408,10 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 			}
 
 			// Now on the button creation form.
-			await expect(
-				block.locator( 'h3:has-text("Create PayPal Button")' )
-			).toBeVisible( { timeout: 5000 } );
-			await expect(
-				block.locator( 'input[placeholder="e.g., Premium Widget"]' )
-			).toBeVisible();
+			await expect( block.locator( 'h3:has-text("Create PayPal Button")' ) ).toBeVisible( {
+				timeout: 5000,
+			} );
+			await expect( block.locator( 'input[placeholder="e.g., Premium Widget"]' ) ).toBeVisible();
 		} );
 	} );
 
@@ -438,9 +419,7 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 	// 2. Create Button Flow
 	// ---------------------------------------------------------------
 	test.describe( 'Create Button Flow', () => {
-		test( 'shows creation form when connected with no existing button', async ( {
-			page,
-		} ) => {
+		test( 'shows creation form when connected with no existing button', async ( { page } ) => {
 			await setupPayPalMocks( page );
 			await goToNewPost( page );
 			await insertPayPalBlock( page );
@@ -464,9 +443,7 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 			await expect( createBtn ).toBeDisabled();
 		} );
 
-		test( 'creates button and shows preview after successful API call', async ( {
-			page,
-		} ) => {
+		test( 'creates button and shows preview after successful API call', async ( { page } ) => {
 			await setupPayPalMocks( page );
 			await goToNewPost( page );
 			await insertPayPalBlock( page );
@@ -482,9 +459,9 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 			await expect( block.locator( '.jetpack-paypal-button-preview' ) ).toBeVisible( {
 				timeout: 5000,
 			} );
-			await expect(
-				block.locator( '.jetpack-paypal-button-preview__product-name' )
-			).toHaveText( 'Test Product' );
+			await expect( block.locator( '.jetpack-paypal-button-preview__product-name' ) ).toHaveText(
+				'Test Product'
+			);
 		} );
 
 		test( 'shows edit/preview toggle toolbar after creation', async ( { page } ) => {
@@ -553,9 +530,7 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 			const paypalButton = page.locator( '.jetpack-paypal-button' );
 			await expect( paypalButton ).toBeVisible();
 
-			await expect(
-				paypalButton.locator( '.jetpack-paypal-button__product-name' )
-			).toBeVisible();
+			await expect( paypalButton.locator( '.jetpack-paypal-button__product-name' ) ).toBeVisible();
 
 			const paypalLink = paypalButton.locator( '.jetpack-paypal-button__paypal-link' );
 			await expect( paypalLink ).toBeVisible();
@@ -617,9 +592,7 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 			await expect( block.locator( 'button:has-text("Create Button")' ) ).toBeDisabled();
 		} );
 
-		test( 'shows field validation error after blurring empty product name', async ( {
-			page,
-		} ) => {
+		test( 'shows field validation error after blurring empty product name', async ( { page } ) => {
 			await setupPayPalMocks( page );
 			await goToNewPost( page );
 			await insertPayPalBlock( page );
@@ -631,15 +604,15 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 			await nameInput.fill( '' );
 			await block.locator( 'input[placeholder="29.99"]' ).click(); // blur
 
-			await expect(
-				block.locator( '.jetpack-paypal-payment-buttons__field-error' )
-			).toBeVisible( { timeout: 3000 } );
+			await expect( block.locator( '.jetpack-paypal-payment-buttons__field-error' ) ).toBeVisible( {
+				timeout: 3000,
+			} );
 		} );
 
 		test( 'shows API error message in notice', async ( { page } ) => {
 			// Override create endpoint to return 400 error.
 			await setupPayPalMocks( page );
-			await page.route( '**/wp-json/jetpack/v4/paypal/buttons', ( route ) => {
+			await page.route( '**/wp-json/jetpack/v4/paypal/buttons', route => {
 				if ( route.request().method() === 'POST' ) {
 					return route.fulfill( {
 						status: 400,
@@ -672,9 +645,7 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 			'<div class="wp-block-jetpack-paypal-payment-buttons"><div class="jetpack-paypal-button jetpack-paypal-button--stacked" id="LEGACY123"></div></div>\n' +
 			'<!-- /wp:jetpack/paypal-payment-buttons -->';
 
-		test( 'legacy paste-code block shows read-only indicator in editor', async ( {
-			page,
-		} ) => {
+		test( 'legacy paste-code block shows read-only indicator in editor', async ( { page } ) => {
 			await setupPayPalMocks( page );
 			await goToNewPost( page );
 
@@ -731,9 +702,7 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 			const block = page.locator( '.wp-block-jetpack-paypal-payment-buttons' );
 
 			// Should show create form initially (connected).
-			await expect(
-				block.locator( 'h3:has-text("Create PayPal Button")' )
-			).toBeVisible();
+			await expect( block.locator( 'h3:has-text("Create PayPal Button")' ) ).toBeVisible();
 
 			// Open sidebar and find Disconnect.
 			await page.click( 'button[aria-label="Settings"]' );
@@ -745,7 +714,7 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 			}
 
 			// After disconnect, mock returns disconnected state.
-			await page.route( '**/wp-json/jetpack/v4/paypal/connection', ( route ) => {
+			await page.route( '**/wp-json/jetpack/v4/paypal/connection', route => {
 				route.fulfill( {
 					status: 200,
 					contentType: 'application/json',
@@ -753,22 +722,18 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 				} );
 			} );
 
-			const disconnectBtn = sidebar
-				.locator( 'button:has-text("Disconnect")' )
-				.first();
+			const disconnectBtn = sidebar.locator( 'button:has-text("Disconnect")' ).first();
 			if ( await disconnectBtn.isVisible( { timeout: 3000 } ).catch( () => false ) ) {
 				await disconnectBtn.click();
 
 				// Block should now show the wizard Welcome step.
-				await expect(
-					block.locator( 'button:has-text("Get Started")' )
-				).toBeVisible( { timeout: 5000 } );
+				await expect( block.locator( 'button:has-text("Get Started")' ) ).toBeVisible( {
+					timeout: 5000,
+				} );
 			}
 		} );
 
-		test( 'delete button clears block state and returns to edit mode', async ( {
-			page,
-		} ) => {
+		test( 'delete button clears block state and returns to edit mode', async ( { page } ) => {
 			await setupPayPalMocks( page );
 			await goToNewPost( page );
 			await insertPayPalBlock( page );
@@ -794,9 +759,9 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 				await deleteBtn.click();
 
 				// Should return to create form.
-				await expect(
-					block.locator( 'h3:has-text("Create PayPal Button")' )
-				).toBeVisible( { timeout: 5000 } );
+				await expect( block.locator( 'h3:has-text("Create PayPal Button")' ) ).toBeVisible( {
+					timeout: 5000,
+				} );
 			}
 		} );
 	} );
@@ -822,7 +787,7 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 
 			// Intercept the connect POST to verify it hits the production domain.
 			let connectRequestBody = null;
-			await page.route( '**/wp-json/jetpack/v4/paypal/connect', ( route ) => {
+			await page.route( '**/wp-json/jetpack/v4/paypal/connect', route => {
 				connectRequestBody = route.request().postDataJSON();
 				route.fulfill( {
 					status: 200,
@@ -846,7 +811,7 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 				.fill( 'AValidClientId123456789' );
 			await block.locator( 'input[type="password"]' ).fill( 'valid_client_secret' );
 
-			await page.route( '**/wp-json/jetpack/v4/paypal/connection', ( route ) => {
+			await page.route( '**/wp-json/jetpack/v4/paypal/connection', route => {
 				route.fulfill( {
 					status: 200,
 					contentType: 'application/json',
@@ -881,7 +846,7 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 			await setupDisconnectedMocks( page );
 
 			// Mock connect to return a 403 — app lacks Payment Links scope.
-			await page.route( '**/wp-json/jetpack/v4/paypal/connect', ( route ) => {
+			await page.route( '**/wp-json/jetpack/v4/paypal/connect', route => {
 				route.fulfill( {
 					status: 403,
 					contentType: 'application/json',
@@ -908,9 +873,7 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 			await block.locator( 'button:has-text("Connect")' ).click();
 
 			// Should show the 403 guidance error.
-			const errorNotice = block.locator(
-				'.components-notice.is-error, [class*="error"]'
-			);
+			const errorNotice = block.locator( '.components-notice.is-error, [class*="error"]' );
 			await expect( errorNotice ).toBeVisible( { timeout: 5000 } );
 			await expect( errorNotice ).toContainText( /Payment Links|Developer Dashboard/i );
 
@@ -922,7 +885,7 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 			await setupDisconnectedMocks( page );
 
 			// First connect returns 403.
-			await page.route( '**/wp-json/jetpack/v4/paypal/connect', ( route ) => {
+			await page.route( '**/wp-json/jetpack/v4/paypal/connect', route => {
 				route.fulfill( {
 					status: 403,
 					contentType: 'application/json',
@@ -948,25 +911,21 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 			await block.locator( 'button:has-text("Connect")' ).click();
 
 			// Wait for error.
-			await expect(
-				block.locator( '.components-notice.is-error, [class*="error"]' )
-			).toBeVisible( { timeout: 5000 } );
+			await expect( block.locator( '.components-notice.is-error, [class*="error"]' ) ).toBeVisible(
+				{ timeout: 5000 }
+			);
 
 			// Connection status should still be disconnected — verify by checking
 			// the wizard is still showing (not the create button form).
-			await expect(
-				block.locator( 'h3:has-text("Create PayPal Button")' )
-			).not.toBeVisible();
+			await expect( block.locator( 'h3:has-text("Create PayPal Button")' ) ).not.toBeVisible();
 		} );
 
-		test( '5xx from PayPal during validation does not block connection', async ( {
-			page,
-		} ) => {
+		test( '5xx from PayPal during validation does not block connection', async ( { page } ) => {
 			await setupDisconnectedMocks( page );
 
 			// Connect returns success despite PayPal 5xx during validation
 			// (server-side treats 5xx as non-blocking per WOOPTP-164).
-			await page.route( '**/wp-json/jetpack/v4/paypal/connect', ( route ) => {
+			await page.route( '**/wp-json/jetpack/v4/paypal/connect', route => {
 				route.fulfill( {
 					status: 200,
 					contentType: 'application/json',
@@ -977,7 +936,7 @@ test.describe( 'PayPal Payment Buttons Block', () => {
 				} );
 			} );
 
-			await page.route( '**/wp-json/jetpack/v4/paypal/connection', ( route ) => {
+			await page.route( '**/wp-json/jetpack/v4/paypal/connection', route => {
 				route.fulfill( {
 					status: 200,
 					contentType: 'application/json',

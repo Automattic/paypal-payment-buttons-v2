@@ -6,21 +6,48 @@
  * legacy paste-code blocks, renders the original script-based embed.
  *
  * Updated for WOOPTP-156: PayPal brand compliance and design guidelines.
+ * Inline PayPal wordmark SVG, "Powered by PayPal" attribution, i18n button text,
+ * flex layout for logo + text, and screen-reader text on new-tab links (WCAG 2.1).
  *
- *  - PayPal wordmark SVG is now rendered inline inside the primary button,
- *    satisfying PayPal's brand requirement that their logo appears on all
- *    buttons that link to a PayPal payment page.
- *  - "Powered by PayPal" attribution displayed below the button container.
- *  - Button text strings are now properly internationalised via `__()`.
- *  - Button layout changed from block to flex to accommodate logo + text.
- *  - Screen-reader text appended to new-tab links per WCAG 2.1 SC 3.2.2.
- *
- * @package automattic/jetpack-paypal-payments
+ * @package
  * @since 0.8.0
  */
 
 import { useBlockProps } from '@wordpress/block-editor';
 import { __ } from '@wordpress/i18n';
+
+/**
+ * Currency symbol map — must match paypal-button-preview.js and
+ * class-paypal-payment-buttons.php for consistent WYSIWYG rendering.
+ */
+const CURRENCY_SYMBOLS = {
+	USD: '$',
+	EUR: '\u20AC',
+	GBP: '\u00A3',
+	JPY: '\u00A5',
+	CAD: 'CA$',
+	AUD: 'A$',
+	CHF: 'CHF',
+	CNY: '\u00A5',
+	INR: '\u20B9',
+	BRL: 'R$',
+	MXN: 'MX$',
+	HKD: 'HK$',
+	NZD: 'NZ$',
+	SGD: 'S$',
+	SEK: 'kr',
+	NOK: 'kr',
+	DKK: 'kr',
+	PLN: 'z\u0142',
+	CZK: 'K\u010D',
+	HUF: 'Ft',
+	ILS: '\u20AA',
+	MYR: 'RM',
+	PHP: '\u20B1',
+	TWD: 'NT$',
+	THB: '\u0E3F',
+	RUB: '\u20BD',
+};
 
 /**
  * PayPal logo SVG rendered inline.
@@ -101,17 +128,19 @@ export default function PayPalPaymentButtonsSave( { attributes } ) {
 		return (
 			<div { ...blockProps }>
 				<div className="jetpack-paypal-button">
-					{ /* Product info */ }
+					{ /* Product info — flex layout matches editor preview */ }
 					<div className="jetpack-paypal-button__product">
-						<span className="jetpack-paypal-button__product-name">{ productName }</span>
-						{ productDescription && (
-							<span className="jetpack-paypal-button__product-description">
-								{ productDescription }
-							</span>
-						) }
+						<div className="jetpack-paypal-button__product-info">
+							<span className="jetpack-paypal-button__product-name">{ productName }</span>
+							{ productDescription && (
+								<span className="jetpack-paypal-button__product-description">
+									{ productDescription }
+								</span>
+							) }
+						</div>
 						{ price && (
 							<span className="jetpack-paypal-button__product-price">
-								{ currencyCode } { price }
+								{ ( CURRENCY_SYMBOLS[ currencyCode ] || currencyCode ) + price }
 							</span>
 						) }
 					</div>

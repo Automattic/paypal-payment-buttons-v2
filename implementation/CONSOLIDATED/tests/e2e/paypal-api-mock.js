@@ -4,7 +4,7 @@
  * Intercepts WordPress REST API calls to /jetpack/v4/paypal/* and returns
  * deterministic responses. Avoids hitting real PayPal endpoints during tests.
  *
- * @package automattic/jetpack-paypal-payments
+ * @package
  * @since 0.8.0
  */
 
@@ -98,14 +98,14 @@ const MOCK_RESPONSES = {
  * Intercepts REST API requests to /wp-json/jetpack/v4/paypal/* and returns
  * mock responses. Call this in your test's beforeEach or at test start.
  *
- * @param {import('@playwright/test').Page} page      Playwright page.
- * @param {Object}                          overrides Optional response overrides keyed by route name.
+ * @param {import('@playwright/test').Page} page      - Playwright page.
+ * @param {object}                          overrides - Optional response overrides keyed by route name.
  */
 async function setupPayPalMocks( page, overrides = {} ) {
 	const responses = { ...MOCK_RESPONSES, ...overrides };
 
 	// GET /jetpack/v4/paypal/connection
-	await page.route( '**/wp-json/jetpack/v4/paypal/connection', ( route ) => {
+	await page.route( '**/wp-json/jetpack/v4/paypal/connection', route => {
 		route.fulfill( {
 			status: 200,
 			contentType: 'application/json',
@@ -114,7 +114,7 @@ async function setupPayPalMocks( page, overrides = {} ) {
 	} );
 
 	// POST /jetpack/v4/paypal/connect
-	await page.route( '**/wp-json/jetpack/v4/paypal/connect', ( route ) => {
+	await page.route( '**/wp-json/jetpack/v4/paypal/connect', route => {
 		if ( route.request().method() === 'POST' ) {
 			const body = route.request().postDataJSON();
 
@@ -137,7 +137,7 @@ async function setupPayPalMocks( page, overrides = {} ) {
 	} );
 
 	// POST /jetpack/v4/paypal/disconnect
-	await page.route( '**/wp-json/jetpack/v4/paypal/disconnect', ( route ) => {
+	await page.route( '**/wp-json/jetpack/v4/paypal/disconnect', route => {
 		route.fulfill( {
 			status: 200,
 			contentType: 'application/json',
@@ -146,7 +146,7 @@ async function setupPayPalMocks( page, overrides = {} ) {
 	} );
 
 	// POST /jetpack/v4/paypal/buttons (create)
-	await page.route( '**/wp-json/jetpack/v4/paypal/buttons', ( route ) => {
+	await page.route( '**/wp-json/jetpack/v4/paypal/buttons', route => {
 		if ( route.request().method() === 'POST' ) {
 			const body = route.request().postDataJSON();
 			const lineItem = body?.line_items?.[ 0 ];
@@ -177,7 +177,7 @@ async function setupPayPalMocks( page, overrides = {} ) {
 	} );
 
 	// PUT /jetpack/v4/paypal/buttons/PLB-*
-	await page.route( '**/wp-json/jetpack/v4/paypal/buttons/PLB-*', ( route ) => {
+	await page.route( '**/wp-json/jetpack/v4/paypal/buttons/PLB-*', route => {
 		if ( route.request().method() === 'PUT' ) {
 			return route.fulfill( {
 				status: 200,
@@ -206,7 +206,7 @@ async function setupPayPalMocks( page, overrides = {} ) {
 /**
  * Set up disconnected state mock (PayPal not connected).
  *
- * @param {import('@playwright/test').Page} page Playwright page.
+ * @param {import('@playwright/test').Page} page - Playwright page.
  */
 async function setupDisconnectedMocks( page ) {
 	await setupPayPalMocks( page, {

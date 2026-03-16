@@ -83,6 +83,7 @@ $paypal-blue: #0070ba;
 	gap: 8px;
 
 	&--single {
+
 		.jetpack-paypal-button__debit-link {
 			display: none;
 		}
@@ -96,11 +97,11 @@ $paypal-blue: #0070ba;
 // The logo class is intentionally shared between the editor
 // (.jetpack-paypal-button-preview__paypal-button .jetpack-paypal-button__logo)
 // and the frontend — keeping rendering identical in both contexts.
-//
 // Height is set to 20px here; the editor scopes its own 20px rule
 // inside the preview button selector so there is no specificity conflict.
 .jetpack-paypal-button__paypal-link,
 .jetpack-paypal-button__debit-link {
+
 	.jetpack-paypal-button__logo {
 		height: 20px;
 		width: auto;

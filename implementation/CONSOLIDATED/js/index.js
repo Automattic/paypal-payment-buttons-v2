@@ -5,15 +5,15 @@
  * save component, and deprecation handlers. This is the entry point
  * specified in block.json's `editorScript`.
  *
- * @package automattic/jetpack-paypal-payments
+ * @package
  * @since 0.8.0
  */
 
 import { registerBlockType } from '@wordpress/blocks';
 import metadata from './block-v2.json';
+import deprecated from './deprecated';
 import edit from './edit';
 import save from './save';
-import deprecated from './deprecated';
 
 /**
  * Register the PayPal Payment Buttons block.

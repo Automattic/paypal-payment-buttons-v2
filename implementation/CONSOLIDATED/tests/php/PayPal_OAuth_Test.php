@@ -77,11 +77,11 @@ class PayPal_OAuth_Test extends TestCase {
 	 */
 	public static function invalid_environment_provider() {
 		return array(
-			'empty string'    => array( '' ),
-			'invalid value'   => array( 'staging' ),
-			'mixed case'      => array( 'Production' ),
-			'numeric'         => array( '1' ),
-			'html injection'  => array( '<script>alert(1)</script>' ),
+			'empty string'   => array( '' ),
+			'invalid value'  => array( 'staging' ),
+			'mixed case'     => array( 'Production' ),
+			'numeric'        => array( '1' ),
+			'html injection' => array( '<script>alert(1)</script>' ),
 		);
 	}
 
