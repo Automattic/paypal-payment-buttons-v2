@@ -118,6 +118,9 @@ function formatPrice( priceValue, currencyCode ) {
 function CopyablePaymentLink( { paymentLink } ) {
 	const [ copied, setCopied ] = useState( false );
 
+	const copiedLabel = __( 'Copied!', 'jetpack-paypal-payments' );
+	const copyLabel = __( 'Copy', 'jetpack-paypal-payments' );
+
 	const handleCopy = () => {
 		if ( navigator.clipboard ) {
 			navigator.clipboard.writeText( paymentLink ).then( () => {
@@ -139,9 +142,7 @@ function CopyablePaymentLink( { paymentLink } ) {
 				onClick={ handleCopy }
 				aria-label={ __( 'Copy payment link to clipboard', 'jetpack-paypal-payments' ) }
 			>
-				{ copied
-					? __( 'Copied!', 'jetpack-paypal-payments' )
-					: __( 'Copy', 'jetpack-paypal-payments' ) }
+				{ copied ? copiedLabel : copyLabel }
 			</button>
 		</div>
 	);
@@ -161,6 +162,7 @@ function CopyablePaymentLink( { paymentLink } ) {
  * @param {string} props.currencyCode       - ISO currency code.
  * @param {string} props.productDescription - Optional product description.
  * @param {string} props.paymentLink        - PayPal payment URL.
+ * @param {string} props.imageUrl           - Optional product image URL.
  * @return {Element} Button preview element.
  */
 export default function PayPalButtonPreview( {
@@ -171,11 +173,19 @@ export default function PayPalButtonPreview( {
 	currencyCode = 'USD',
 	productDescription,
 	paymentLink,
+	imageUrl,
 } ) {
 	const isStacked = buttonType === 'stacked';
 
 	return (
 		<div className="jetpack-paypal-button-preview">
+			{ /* Product image */ }
+			{ imageUrl && (
+				<div className="jetpack-paypal-button-preview__image">
+					<img src={ imageUrl } alt={ productName || '' } />
+				</div>
+			) }
+
 			{ /* Product info card */ }
 			<div className="jetpack-paypal-button-preview__product">
 				<div className="jetpack-paypal-button-preview__product-info">

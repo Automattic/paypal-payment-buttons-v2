@@ -15,7 +15,12 @@
  */
 
 import apiFetch from '@wordpress/api-fetch'; // eslint-disable-line import/no-unresolved
-import { BlockControls, InspectorControls, useBlockProps } from '@wordpress/block-editor';
+import {
+	BlockControls,
+	InspectorControls,
+	MediaUpload,
+	useBlockProps,
+} from '@wordpress/block-editor';
 import {
 	Button,
 	Notice,
@@ -203,9 +208,21 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 		currencyCode,
 		productDescription,
 		returnUrl,
+		imageUrl,
 	} = attributes;
 
 	const blockProps = useBlockProps();
+
+	// Pre-extract translated strings used in ternaries to avoid
+	// i18n-check-webpack-plugin errors when the minifier collapses branches.
+	const labelConnect = __( 'Connect', 'jetpack-paypal-payments' );
+	const labelConnecting = __( 'Connecting\u2026', 'jetpack-paypal-payments' );
+	const labelHide = __( 'Hide', 'jetpack-paypal-payments' );
+	const labelShow = __( 'Show', 'jetpack-paypal-payments' );
+	const labelHideSecret = __( 'Hide client secret', 'jetpack-paypal-payments' );
+	const labelShowSecret = __( 'Show client secret', 'jetpack-paypal-payments' );
+	const labelEditHeading = __( 'Edit PayPal Button or Link', 'jetpack-paypal-payments' );
+	const labelCreateHeading = __( 'Create PayPal Button or Link', 'jetpack-paypal-payments' );
 
 	// Connection state.
 	const [ isConnected, setIsConnected ] = useState( false );
@@ -423,11 +440,12 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 						value: price,
 					},
 					...( productDescription ? { description: productDescription } : {} ),
+					...( imageUrl ? { image_url: imageUrl } : {} ),
 				},
 			],
 			...( returnUrl ? { return_url: returnUrl } : {} ),
 		} ),
-		[ productName, price, currencyCode, productDescription, returnUrl ]
+		[ productName, price, currencyCode, productDescription, returnUrl, imageUrl ]
 	);
 
 	/**
@@ -840,15 +858,9 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 									variant="tertiary"
 									className="jetpack-paypal-wizard__toggle-secret"
 									onClick={ () => setShowSecretField( ! showSecretField ) }
-									aria-label={
-										showSecretField
-											? __( 'Hide client secret', 'jetpack-paypal-payments' )
-											: __( 'Show client secret', 'jetpack-paypal-payments' )
-									}
+									aria-label={ showSecretField ? labelHideSecret : labelShowSecret }
 								>
-									{ showSecretField
-										? __( 'Hide', 'jetpack-paypal-payments' )
-										: __( 'Show', 'jetpack-paypal-payments' ) }
+									{ showSecretField ? labelHide : labelShow }
 								</Button>
 							</div>
 
@@ -859,9 +871,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 									isBusy={ isConnecting }
 									disabled={ isConnecting || ! clientId || ! clientSecret }
 								>
-									{ isConnecting
-										? __( 'Connecting…', 'jetpack-paypal-payments' )
-										: __( 'Connect', 'jetpack-paypal-payments' ) }
+									{ isConnecting ? labelConnecting : labelConnect }
 								</Button>
 								<Button
 									variant="tertiary"
@@ -1036,6 +1046,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 						currencyCode={ currencyCode }
 						productDescription={ productDescription }
 						paymentLink={ paymentLink }
+						imageUrl={ imageUrl }
 					/>
 				</div>
 			</div>
@@ -1059,11 +1070,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 					) }
 				</div>
 
-				<h3>
-					{ hasButton
-						? __( 'Edit PayPal Button or Link', 'jetpack-paypal-payments' )
-						: __( 'Create PayPal Button or Link', 'jetpack-paypal-payments' ) }
-				</h3>
+				<h3>{ hasButton ? labelEditHeading : labelCreateHeading }</h3>
 				{ ! hasButton && (
 					<p className="jetpack-paypal-payment-buttons__form-intro">
 						{ __(
@@ -1158,6 +1165,43 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 					}
 				/>
 
+				<div className="jetpack-paypal-payment-buttons__image-upload">
+					<p className="jetpack-paypal-payment-buttons__field-label">
+						{ __( 'Product Image (optional)', 'jetpack-paypal-payments' ) }
+					</p>
+					{ imageUrl ? (
+						<div className="jetpack-paypal-payment-buttons__image-preview">
+							<img src={ imageUrl } alt={ productName || '' } />
+							<Button
+								variant="secondary"
+								isDestructive
+								isSmall
+								onClick={ () => setAttributes( { imageUrl: '' } ) }
+								disabled={ isCreating }
+							>
+								{ __( 'Remove Image', 'jetpack-paypal-payments' ) }
+							</Button>
+						</div>
+					) : (
+						<MediaUpload
+							onSelect={ media => setAttributes( { imageUrl: media.url } ) }
+							allowedTypes={ [ 'image' ] }
+							render={ ( { open } ) => (
+								<Button
+									variant="secondary"
+									onClick={ open }
+									disabled={ isCreating }
+									className="jetpack-paypal-payment-buttons__upload-button"
+								>
+									{ __( 'Upload Image', 'jetpack-paypal-payments' ) }
+								</Button>
+							) }
+						/>
+					) }
+					<p className="jetpack-paypal-payment-buttons__field-help">
+						{ __( 'Shown on the PayPal checkout page.', 'jetpack-paypal-payments' ) }
+					</p>
+				</div>
 				<TextControl
 					label={ __( 'Return URL (optional)', 'jetpack-paypal-payments' ) }
 					value={ returnUrl || '' }
