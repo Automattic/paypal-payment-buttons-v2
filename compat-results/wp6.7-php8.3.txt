@@ -1,0 +1,22 @@
+# WP 6.7 (actual: 6.7) + PHP 8.3 (actual: 8.3)
+# Date: 2026-03-19T18:52:38Z
+
+PASS | Plugin activates
+PASS | Block registered
+PASS | REST routes (6 endpoints)
+PASS | Credential store/retrieve
+PASS | sodium encryption
+PASS | Environment switching
+PASS | Connection status
+PASS | Disconnect cleanup
+PASS | Block render (empty -> null)
+PASS | Block render callback registered
+PASS | Price formatting (USD/EUR/JPY)
+PASS | Admin page class loaded
+PASS | Plugin constants
+PASS | Email log
+PASS | No PHP fatal errors
+PASS | No PHP deprecation warnings
+PASS | Frontend renders (HTTP 200)
+
+SUMMARY: 17/17 passed, 0 failed
