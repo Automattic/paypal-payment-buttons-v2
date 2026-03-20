@@ -53,7 +53,7 @@
 		},
 		{
 			"step": "runPHP",
-			"code": "<?php require_once 'wordpress/wp-load.php'; wp_insert_post(array('post_title' => 'PayPal Button — Single Layout', 'post_name' => 'paypal-single', 'post_content' => '<!-- wp:jetpack/paypal-payment-buttons {\"isApiManaged\":true,\"resourceId\":\"PLB-ZY8X244HBWKU\",\"paymentLink\":\"https://www.paypal.com/ncp/payment/PLB-ZY8X244HBWKU\",\"productName\":\"Basic Plan\",\"price\":\"9.99\",\"currencyCode\":\"USD\",\"productDescription\":\"Monthly subscription to the basic plan.\",\"buttonType\":\"single\"} /-->\n\n<!-- wp:paragraph -->\n<p>This button uses the single layout — only the PayPal button, no secondary Debit/Credit Card option.</p>\n<!-- /wp:paragraph -->', 'post_status' => 'publish', 'post_type' => 'post')); ?>"
+			"code": "<?php require_once 'wordpress/wp-load.php'; wp_insert_post(array('post_title' => 'PayPal Button — Single Layout', 'post_name' => 'paypal-single', 'post_content' => '<!-- wp:jetpack/paypal-payment-buttons {\"isApiManaged\":true,\"resourceId\":\"PLB-ZY8X244HBWKU\",\"paymentLink\":\"https://www.paypal.com/ncp/payment/PLB-ZY8X244HBWKU\",\"productName\":\"Basic Plan\",\"price\":\"9.99\",\"currencyCode\":\"USD\",\"productDescription\":\"A simple one-time payment for the basic plan.\",\"buttonType\":\"single\"} /-->\n\n<!-- wp:paragraph -->\n<p>This button uses the single layout — only the PayPal button, no secondary Debit/Credit Card option.</p>\n<!-- /wp:paragraph -->', 'post_status' => 'publish', 'post_type' => 'post')); ?>"
 		},
 		{
 			"step": "runPHP",
