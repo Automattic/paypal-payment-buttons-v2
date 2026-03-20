@@ -10,7 +10,7 @@ Setup takes a minute or two — you'll see progress messages while it installs p
 
 ## After it loads
 
-Everything is already set up and activated for you: the PayPal Payment Buttons plugin (v0.8.0) with sandbox credentials and the guided credential wizard.
+Everything is already set up and activated for you: the PayPal Payment Buttons plugin (v0.9.0) with demo credentials and the guided credential wizard.
 
 ### View the demo posts
 
@@ -35,10 +35,16 @@ Everything is already set up and activated for you: the PayPal Payment Buttons p
 - **Token pre-validation** (WOOPTP-164) — Connect flow verifies Payment Links API access upfront
 - **Token expiry resilience** (WOOPTP-165) — Absolute expiry timestamps guard against cache eviction
 - **Frontend rendering parity** (WOOPTP-161) — Published buttons match the block editor preview exactly
-- **Product image support** (WOOPTP-188) — Attach images via WordPress Media Library
 - **QR code generation** (WOOPTP-183) — "Show QR Code" toggle on frontend pages for in-person sharing
 - **Product variants** (WOOPTP-174) — Size, color, and other options with per-option pricing
-- **15 UX fixes** — ARIA semantics, confirmation dialogs, copy link, character counts, and more
+- **Shipping & tax support** (WOOPTP-172/173) — Flat-rate shipping and percentage-based tax configuration
+- **Adjustable quantity** (WOOPTP-170) — Let buyers choose quantity at checkout
+- **Customer notes** (WOOPTP-171) — Custom input fields at checkout
+- **Send payment link via email** (WOOPTP-181) — Email payment links to customers from the admin dashboard
+- **Credential encryption** (WOOPTP-189) — Credentials encrypted at rest via sodium_crypto_secretbox
+- **RUB currency removed** — Per PayPal guidance, Russian Ruble removed from currency list
+- **Sanitization hardening** — $_GET superglobal sanitization per Pluginomattic guidelines
+- **20+ UX and security fixes** — Adversarial review, ARIA semantics, confirmation dialogs, and more
 
 ## Good to know
 
