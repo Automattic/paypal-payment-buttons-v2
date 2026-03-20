@@ -39,7 +39,7 @@ echo ""
 # PHP source files → src/paypal-payment-buttons/
 # ---------------------------------------------------------------
 echo "--- PHP source files ---"
-for f in class-paypal-oauth.php class-paypal-rest-controller.php class-paypal-api-client.php class-paypal-attribute-mapper.php class-paypal-payment-buttons.php; do
+for f in class-paypal-oauth.php class-paypal-rest-controller.php class-paypal-api-client.php class-paypal-attribute-mapper.php class-paypal-payment-buttons.php class-paypal-admin-page.php class-paypal-payment-links-list-table.php class-paypal-email-sender.php; do
 	cp -v "$CONSOLIDATED/php/$f" "$BLOCK_SRC/$f"
 done
 
@@ -48,7 +48,7 @@ done
 # ---------------------------------------------------------------
 echo ""
 echo "--- JS source files ---"
-for f in edit.js save.js deprecated.js index.js paypal-button-preview.js validation.js; do
+for f in edit.js save.js deprecated.js index.js paypal-button-preview.js validation.js variant-builder.js icon.js qr-code.js paypal-logo.js currency-symbols.js editor.js shipping-panel.js; do
 	cp -v "$CONSOLIDATED/js/$f" "$BLOCK_SRC/$f"
 done
 
@@ -78,18 +78,41 @@ cp -v "$CONSOLIDATED/block/block-v2.json" "$BLOCK_SRC/block-v2.json"
 echo ""
 echo "--- PHP tests ---"
 mkdir -p "$TESTS_PHP"
-for f in PayPal_OAuth_Test.php PayPal_API_Client_Test.php PayPal_Attribute_Mapper_Test.php PayPal_REST_Controller_Test.php PayPal_API_Client_Retry_Test.php; do
-	cp -v "$CONSOLIDATED/tests/php/$f" "$TESTS_PHP/$f"
+for f in "$CONSOLIDATED/tests/php/"*.php; do
+	cp -v "$f" "$TESTS_PHP/$(basename "$f")"
 done
 
 # ---------------------------------------------------------------
-# JS tests → tests/js/paypal-payment-buttons-block-tests/
+# JS tests → tests/js/
 # ---------------------------------------------------------------
+TESTS_JS_ROOT="$JETPACK_ROOT/projects/packages/paypal-payments/tests/js"
+TESTS_JS_V2="$TESTS_JS_ROOT/paypal-payment-buttons-block-tests"
+
 echo ""
-echo "--- JS tests ---"
-mkdir -p "$TESTS_JS"
-for f in validation.test.js paypal-button-preview.test.js save.test.js deprecated.test.js edit.test.js api-fetch-mock.js; do
-	cp -v "$CONSOLIDATED/tests/js/$f" "$TESTS_JS/$f"
+echo "--- JS tests (top-level) ---"
+for f in "$CONSOLIDATED/tests/js/"*.js; do
+	[ -f "$f" ] && cp -v "$f" "$TESTS_JS_ROOT/$(basename "$f")"
+done
+
+echo ""
+echo "--- JS tests (paypal-payment-buttons-block-tests/) ---"
+mkdir -p "$TESTS_JS_V2"
+cp -rv "$CONSOLIDATED/tests/js/paypal-payment-buttons-block-tests/"* "$TESTS_JS_V2/"
+
+echo ""
+echo "--- JS tests (simple-payments-block-tests/) ---"
+mkdir -p "$TESTS_JS_ROOT/simple-payments-block-tests"
+cp -rv "$CONSOLIDATED/tests/js/simple-payments-block-tests/"* "$TESTS_JS_ROOT/simple-payments-block-tests/"
+
+echo ""
+echo "--- JS tests (fixtures/) ---"
+mkdir -p "$TESTS_JS_ROOT/fixtures"
+cp -rv "$CONSOLIDATED/tests/js/fixtures/"* "$TESTS_JS_ROOT/fixtures/"
+
+echo ""
+echo "--- Test setup/mock files ---"
+for f in jest.setup.js api-fetch-mock.js json-mock.js social-logos-mock.js styles-mock.js; do
+	[ -f "$CONSOLIDATED/tests/$f" ] && cp -v "$CONSOLIDATED/tests/$f" "$JETPACK_ROOT/projects/packages/paypal-payments/tests/$f"
 done
 
 # ---------------------------------------------------------------

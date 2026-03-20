@@ -156,7 +156,6 @@ class PayPal_Payment_Buttons {
 		'PHP' => '₱',
 		'TWD' => 'NT$',
 		'THB' => '฿',
-		'RUB' => '₽',
 	);
 
 	/**
@@ -203,7 +202,9 @@ class PayPal_Payment_Buttons {
 		$button_text         = $attributes['buttonText'] ?? __( 'Pay Now', 'jetpack-paypal-payments' );
 		$button_type         = $attributes['buttonType'] ?? 'stacked';
 		$product_description = $attributes['productDescription'] ?? '';
-		$image_url           = $attributes['imageUrl'] ?? '';
+		$variants_enabled    = ! empty( $attributes['variantsEnabled'] );
+		$variants            = $attributes['variants'] ?? null;
+		$show_qr_code        = $attributes['showQrCode'] ?? true;
 
 		if ( empty( $resource_id ) || empty( $payment_url ) ) {
 			return;
@@ -216,7 +217,9 @@ class PayPal_Payment_Buttons {
 		}
 
 		self::register_hooks();
-		self::enqueue_qr_script();
+		if ( $show_qr_code ) {
+			self::enqueue_qr_script();
+		}
 
 		// Append BN code for revenue attribution tracking.
 		$action_url = esc_url(
@@ -224,19 +227,6 @@ class PayPal_Payment_Buttons {
 		);
 
 		$is_stacked = 'stacked' === $button_type;
-
-		// Build product image.
-		$image_html = '';
-		if ( ! empty( $image_url ) ) {
-			$sanitized_image = esc_url( $image_url );
-			if ( $sanitized_image ) {
-				$image_html = sprintf(
-					'<div class="jetpack-paypal-button__image"><img src="%s" alt="%s" loading="lazy" /></div>',
-					$sanitized_image,
-					esc_attr( $product_name )
-				);
-			}
-		}
 
 		// Build product info section.
 		$description_html = '';
@@ -265,12 +255,73 @@ class PayPal_Payment_Buttons {
 			);
 		}
 
-		$paypal_logo = self::get_paypal_logo_svg();
+		// Build variant options display.
+		$variants_html = '';
+		if ( $variants_enabled && ! empty( $variants['dimensions'] ) && is_array( $variants['dimensions'] ) ) {
+			$variant_groups = array();
+			foreach ( $variants['dimensions'] as $dimension ) {
+				$dim_name = esc_html( $dimension['name'] ?? '' );
+				if ( empty( $dim_name ) || empty( $dimension['options'] ) ) {
+					continue;
+				}
+
+				$options_html = array();
+				foreach ( $dimension['options'] as $option ) {
+					$label = esc_html( $option['label'] ?? '' );
+					if ( empty( $label ) ) {
+						continue;
+					}
+
+					// Show per-option price if different from base price.
+					$option_price = '';
+					if ( ! empty( $option['unit_amount']['value'] ) && $option['unit_amount']['value'] !== $price ) {
+						$option_price = ' <span class="jetpack-paypal-button__variant-price">'
+							. esc_html( self::format_price( $option['unit_amount']['value'], $currency ) )
+							. '</span>';
+					}
+
+					$options_html[] = '<span class="jetpack-paypal-button__variant-option">'
+						. $label . $option_price . '</span>';
+				}
+
+				if ( ! empty( $options_html ) ) {
+					$variant_groups[] = '<div class="jetpack-paypal-button__variant-group">'
+						. '<span class="jetpack-paypal-button__variant-name">' . $dim_name . ':</span> '
+						. implode( '', $options_html )
+						. '</div>';
+				}
+			}
+
+			if ( ! empty( $variant_groups ) ) {
+				$variants_html = '<div class="jetpack-paypal-button__variants">'
+					. '<p class="jetpack-paypal-button__variants-label">'
+					. esc_html__( 'Options available — select at checkout:', 'jetpack-paypal-payments' )
+					. '</p>'
+					. implode( '', $variant_groups )
+					. '</div>';
+			}
+		}
+
+		// QR code section (conditionally rendered).
+		$qr_html = '';
+		if ( $show_qr_code ) {
+			$qr_show     = esc_attr__( 'Show QR Code', 'jetpack-paypal-payments' );
+			$qr_hide     = esc_attr__( 'Hide QR Code', 'jetpack-paypal-payments' );
+			$qr_download = esc_html__( 'Download QR Code', 'jetpack-paypal-payments' );
+			$qr_html     = '<div class="jetpack-paypal-button__qr-section">'
+				. '<button type="button" class="jetpack-paypal-button__qr-toggle" data-show-label="' . $qr_show . '" data-hide-label="' . $qr_hide . '" aria-expanded="false">' . $qr_show . '</button>'
+				. '<div class="jetpack-paypal-button__qr-wrapper" style="display:none;">'
+				. '<canvas class="jetpack-paypal-button__qr-canvas"></canvas>'
+				. '<button type="button" class="jetpack-paypal-button__qr-download">' . $qr_download . '</button>'
+				. '</div></div>';
+		}
+
+		$paypal_logo        = self::get_paypal_logo_svg();
+		$wrapper_attributes = get_block_wrapper_attributes();
 
 		return sprintf(
-			'<div class="wp-block-jetpack-paypal-payment-buttons">
+			'<div %16$s>
 	<div class="jetpack-paypal-button">
-		%10$s
 		<div class="jetpack-paypal-button__product">
 			<div class="jetpack-paypal-button__product-info">
 				<span class="jetpack-paypal-button__product-name">%1$s</span>
@@ -278,6 +329,7 @@ class PayPal_Payment_Buttons {
 			</div>
 			%3$s
 		</div>
+		%14$s
 		<div class="jetpack-paypal-button__buttons jetpack-paypal-button__buttons--%4$s">
 			<a href="%5$s" class="jetpack-paypal-button__paypal-link" target="_blank" rel="noopener noreferrer">
 				%6$s
@@ -286,13 +338,7 @@ class PayPal_Payment_Buttons {
 			%8$s
 		</div>
 		<p class="jetpack-paypal-button__attribution">%9$s</p>
-		<div class="jetpack-paypal-button__qr-section">
-			<button type="button" class="jetpack-paypal-button__qr-toggle" data-show-label="%11$s" data-hide-label="%12$s" aria-expanded="false">%11$s</button>
-			<div class="jetpack-paypal-button__qr-wrapper" style="display:none;">
-				<canvas class="jetpack-paypal-button__qr-canvas"></canvas>
-				<button type="button" class="jetpack-paypal-button__qr-download">%13$s</button>
-			</div>
-		</div>
+		%15$s
 	</div>
 </div>',
 			esc_html( $product_name ),
@@ -304,10 +350,12 @@ class PayPal_Payment_Buttons {
 			esc_html( $button_text ),
 			$debit_button_html,
 			esc_html__( 'Powered by PayPal', 'jetpack-paypal-payments' ),
-			$image_html,
-			esc_attr__( 'Show QR Code', 'jetpack-paypal-payments' ),
-			esc_attr__( 'Hide QR Code', 'jetpack-paypal-payments' ),
-			esc_html__( 'Download QR Code', 'jetpack-paypal-payments' )
+			'',
+			'',
+			'',
+			$variants_html,
+			$qr_html,
+			$wrapper_attributes
 		);
 	}
 
@@ -506,6 +554,58 @@ class PayPal_Payment_Buttons {
 	public static function init_api() {
 		add_action( 'init', array( __CLASS__, 'register_standalone_script_stubs' ), 1 );
 		add_action( 'rest_api_init', array( PayPal_REST_Controller::class, 'register_routes' ) );
+		self::init_jetpack_sharing();
+		PayPal_Email_Sender::init();
+	}
+
+	/**
+	 * Integrate with Jetpack Sharing (Sharedaddy) if available.
+	 *
+	 * Ensures sharing buttons appear on pages containing the PayPal
+	 * payment button block. Gracefully no-ops when Jetpack or the
+	 * Sharedaddy module is not active.
+	 *
+	 * @since 0.9.0
+	 * @return void
+	 */
+	private static function init_jetpack_sharing() {
+		// Only register if Jetpack + Sharedaddy are active.
+		if (
+			! class_exists( 'Jetpack' )
+			|| ! method_exists( 'Jetpack', 'is_module_active' )
+			|| ! \Jetpack::is_module_active( 'sharedaddy' )
+		) {
+			return;
+		}
+
+		add_filter( 'sharing_show', array( __CLASS__, 'enable_sharing_on_payment_pages' ), 10, 2 );
+	}
+
+	/**
+	 * Enable Jetpack Sharing buttons on pages containing the PayPal block.
+	 *
+	 * Callback for the 'sharing_show' filter. Returns true if the current
+	 * post contains the PayPal payment buttons block, otherwise passes
+	 * through the existing value unchanged.
+	 *
+	 * @param bool     $show Whether to show sharing buttons.
+	 * @param \WP_Post $post The current post object.
+	 * @return bool Whether to show sharing buttons.
+	 */
+	public static function enable_sharing_on_payment_pages( $show, $post = null ) {
+		if ( $show ) {
+			return $show; // Already enabled by another filter — don't interfere.
+		}
+
+		if ( ! $post instanceof \WP_Post ) {
+			return $show;
+		}
+
+		if ( has_block( 'jetpack/paypal-payment-buttons', $post ) ) {
+			return true;
+		}
+
+		return $show;
 	}
 
 	/**
