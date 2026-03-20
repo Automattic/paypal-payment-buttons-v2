@@ -13,7 +13,7 @@
 			"step": "installPlugin",
 			"pluginData": {
 				"resource": "url",
-				"url": "https://github.com/Automattic/paypal-payment-buttons-v2/releases/download/v0.8.0-playground/paypal-payment-buttons.zip",
+				"url": "https://github.com/Automattic/paypal-payment-buttons-v2/releases/download/v0.9.0-playground/paypal-payment-buttons.zip",
 				"caption": "Installing PayPal Payment Buttons"
 			},
 			"options": {
@@ -39,13 +39,13 @@
 			"step": "setSiteOptions",
 			"options": {
 				"blogname": "PayPal Payment Buttons V2 Demo",
-				"blogdescription": "WordCamp Asia 2026 — Jetpack 15.7 Preview (v0.8.0 + Phase 2)",
+				"blogdescription": "WordCamp Asia 2026 — Jetpack 15.7 Preview (v0.9.0)",
 				"permalink_structure": "/%year%/%monthnum%/%day%/%postname%/"
 			}
 		},
 		{
 			"step": "runPHP",
-			"code": "<?php require_once 'wordpress/wp-load.php'; update_option( 'jetpack_paypal_payment_buttons_credentials', array( 'client_id' => 'AXBOqFgtrx_DEMO_ID', 'client_secret' => 'EJVcn22Mvwc_DEMO_SECRET', 'hash' => wp_hash( 'AXBOqFgtrx_DEMO_ID' . 'EJVcn22Mvwc_DEMO_SECRET' ), 'stored_at' => time() ) ); update_option( 'jetpack_paypal_payment_buttons_environment', 'sandbox' ); ?>"
+			"code": "<?php require_once 'wordpress/wp-load.php'; update_option( 'jetpack_paypal_payment_buttons_credentials', array( 'client_id' => 'AXBOqFgtrx_DEMO_ID', 'client_secret' => 'EJVcn22Mvwc_DEMO_SECRET', 'hash' => wp_hash( 'AXBOqFgtrx_DEMO_ID' . 'EJVcn22Mvwc_DEMO_SECRET' ), 'stored_at' => time() ) ); update_option( 'jetpack_paypal_payment_buttons_environment', 'production' ); ?>"
 		},
 		{
 			"step": "runPHP",
