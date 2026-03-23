@@ -19,9 +19,9 @@ PayPal Payment Buttons lets you accept payments on your WordPress site using Pay
 * **API-driven button and link creation** — Fill in product name, price, and currency; the plugin creates a PayPal payment resource automatically — giving you both an embeddable button and a shareable payment link
 * **PayPal-branded buttons** — Gold PayPal button with optional Debit/Credit Card secondary button, matching PayPal's official design
 * **Live preview** — See exactly how your button will look before publishing — the frontend renders identically to the editor preview
-* **26 currencies supported** — USD, EUR, GBP, JPY, and 22 more with proper currency symbol formatting
+* **25 currencies supported** — USD, EUR, GBP, JPY, and 21 more with proper currency symbol formatting
 * **Stacked or single layout** — Choose between a two-button stack (PayPal + Debit/Credit) or PayPal-only button
-* **Secure credential storage** — OAuth credentials are encrypted at rest using AES-256-CBC
+* **Secure credential storage** — OAuth credentials are encrypted at rest using authenticated encryption (libsodium)
 * **Backward compatible** — Existing paste-code buttons continue to work unchanged
 
 **How It Works:**
@@ -46,7 +46,7 @@ PayPal Payment Buttons lets you accept payments on your WordPress site using Pay
 = Requirements =
 
 * WordPress 6.8 or later
-* PHP 7.4 or later with OpenSSL extension
+* PHP 7.4 or later with the Sodium extension (included by default in PHP 7.2+)
 * A PayPal Business or Developer account with API credentials
 
 == Frequently Asked Questions ==
@@ -69,11 +69,11 @@ Yes. Existing buttons created with the paste-code method continue to work exactl
 
 = What currencies are supported? =
 
-USD, EUR, GBP, CAD, AUD, JPY, CHF, SEK, NOK, DKK, NZD, SGD, HKD, MXN, BRL, PLN, CZK, HUF, ILS, MYR, PHP, TWD, THB, INR, CNY, and RUB. Each currency displays its proper symbol (e.g., $, €, £, ¥) on both the editor preview and published page.
+USD, EUR, GBP, CAD, AUD, JPY, CHF, SEK, NOK, DKK, NZD, SGD, HKD, MXN, BRL, PLN, CZK, HUF, ILS, MYR, PHP, TWD, THB, INR, and CNY. Each currency displays its proper symbol (e.g., $, €, £, ¥) on both the editor preview and published page.
 
 = Where are my PayPal credentials stored? =
 
-Credentials are stored in the WordPress database (`wp_options`) and protected with an integrity check using WordPress's `wp_hash()` function, which is derived from your site's `LOGGED_IN_KEY` and `LOGGED_IN_SALT` constants. Changing these constants (for example, during a site migration) will invalidate stored credentials and require reconnecting PayPal.
+Credentials are encrypted at rest in the WordPress database (`wp_options`) using libsodium authenticated encryption, with a key derived from your site's `AUTH_KEY` constant. An integrity check prevents tampering. Changing your security keys in `wp-config.php` (for example, during a site migration) will invalidate stored credentials and require reconnecting PayPal.
 
 = What happens if I disconnect PayPal? =
 
@@ -91,7 +91,7 @@ This plugin is designed for standalone PayPal payment buttons on posts and pages
 
 = 0.8.0 =
 * **New:** API-driven button and payment link creation via PayPal's Pay Links & Buttons API — every payment resource includes both an embeddable button and a shareable payment URL
-* **New:** OAuth 2.0 connection flow with encrypted credential storage (AES-256-CBC)
+* **New:** OAuth 2.0 connection flow with encrypted credential storage (libsodium authenticated encryption)
 * **New:** Live button preview in the block editor with PayPal-branded styling
 * **New:** Frontend rendering matches block editor preview exactly — currency symbols, PayPal logo, product info card, stacked/inline layouts
 * **New:** Product description field with truncation on the published page
@@ -100,7 +100,7 @@ This plugin is designed for standalone PayPal payment buttons on posts and pages
 * **New:** Automatic token refresh on expiry with retry logic
 * **New:** Exponential backoff for transient API errors (500/502/503)
 * **New:** PayPal URL domain whitelist for payment link validation
-* **New:** 26 supported currencies with proper symbol formatting
+* **New:** 25 supported currencies with proper symbol formatting
 * **New:** Delete button action in the sidebar
 * **Fixed:** Extract payment_link from HATEOAS links array instead of non-existent top-level field
 * **Fixed:** Align block.json attribute names between editor (JS) and server-side (PHP) registration
