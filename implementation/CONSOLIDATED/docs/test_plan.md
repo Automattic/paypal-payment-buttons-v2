@@ -206,7 +206,7 @@ All of the following must be true before the PR is submitted:
 | E2E tests | 33/33 pass, `playwright_results.json` exists | Pending — week of 2026-03-24 |
 | Manual checklist | All 13 points checked | Pending |
 | Zero critical security issues | From PHP adversarial council review (Priority 2) | Pending |
-| Jarred confirmations | BN code approach (WOOPTP-187) + RUB sanctions flag | Pending — Andrew to confirm with Jarred |
+| Jarred confirmations | BN code approach (WOOPTP-187) ✅ + RUB sanctions flag ✅ | ✅ Done — RUB confirmed NOT allowed on Pay Links & Buttons API. Removed from readme. Never present in code. |
 
 ---
 
@@ -217,5 +217,5 @@ All of the following must be true before the PR is submitted:
 | E2E tests require a running WP environment | Use `playground-blueprint.json` or local dev — schedule week of 2026-03-24 |
 | PayPal sandbox API rate limits during testing | Use `paypal-api-mock.js` for E2E; hit real API only for manual live tests |
 | WOOPTP-163 Production default surfaced sandbox-specific test assumptions | ✅ Resolved — 8 `PayPal_OAuth_Test.php` assertions updated to expect `production` default |
-| RUB currency support unconfirmed (pending Jarred) | Do not include RUB in currency test fixtures until confirmed |
+| ~~RUB currency support~~ | ✅ Resolved — RUB is NOT supported on the Pay Links & Buttons API. Not in code, removed from readme (WOOPTP-261). |
 | E2E wizard selectors may need tuning | Selectors use multiple fallbacks (`placeholder*=`, `aria-label*=`); adjust after first Playwright run |
