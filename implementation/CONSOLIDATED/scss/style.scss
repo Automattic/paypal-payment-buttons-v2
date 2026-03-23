@@ -216,6 +216,15 @@ $paypal-blue: #0070ba;
 	font-size: 11px;
 	color: #757575;
 	line-height: 1.5;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+
+	.jetpack-paypal-button__logo {
+		height: 12px;
+		width: auto;
+	}
 }
 
 // Variant options display.

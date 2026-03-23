@@ -116,9 +116,11 @@ export default function PayPalPaymentButtonsSave( { attributes } ) {
 						) }
 					</div>
 
-					{ /* PayPal brand attribution */ }
+					{ /* PayPal brand attribution — inline logo per PayPal brand guidelines */ }
 					<p className="jetpack-paypal-button__attribution">
-						{ __( 'Powered by PayPal', 'jetpack-paypal-payments' ) }
+						{ __( 'Powered by', 'jetpack-paypal-payments' ) }
+						{ ' ' }
+						<PayPalLogo />
 					</p>
 				</div>
 			</div>
