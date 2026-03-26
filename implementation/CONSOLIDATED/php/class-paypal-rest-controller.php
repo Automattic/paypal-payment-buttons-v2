@@ -64,14 +64,14 @@ class PayPal_REST_Controller {
 						'client_id'     => array(
 							'required'          => true,
 							'type'              => 'string',
-							'sanitize_callback' => 'sanitize_text_field',
+							'sanitize_callback' => array( __CLASS__, 'sanitize_oauth_value' ),
 							'validate_callback' => array( __CLASS__, 'validate_non_empty_string' ),
 							'description'       => __( 'PayPal OAuth client ID.', 'jetpack-paypal-payments' ),
 						),
 						'client_secret' => array(
 							'required'          => true,
 							'type'              => 'string',
-							'sanitize_callback' => 'sanitize_text_field',
+							'sanitize_callback' => array( __CLASS__, 'sanitize_oauth_value' ),
 							'validate_callback' => array( __CLASS__, 'validate_non_empty_string' ),
 							'description'       => __( 'PayPal OAuth client secret.', 'jetpack-paypal-payments' ),
 						),
@@ -131,22 +131,22 @@ class PayPal_REST_Controller {
 						'auth_code'            => array(
 							'required'          => true,
 							'type'              => 'string',
-							'sanitize_callback' => 'sanitize_text_field',
+							'sanitize_callback' => array( __CLASS__, 'sanitize_oauth_value' ),
 							'validate_callback' => array( __CLASS__, 'validate_non_empty_string' ),
 							'description'       => __( 'Authorization code from PayPal onboarding callback.', 'jetpack-paypal-payments' ),
 						),
 						'shared_id'            => array(
 							'required'          => true,
 							'type'              => 'string',
-							'sanitize_callback' => 'sanitize_text_field',
+							'sanitize_callback' => array( __CLASS__, 'sanitize_oauth_value' ),
 							'validate_callback' => array( __CLASS__, 'validate_non_empty_string' ),
 							'description'       => __( 'Shared ID from PayPal onboarding callback.', 'jetpack-paypal-payments' ),
 						),
 						'merchant_id_in_paypal' => array(
-							'required'          => true,
+							'required'          => false,
 							'type'              => 'string',
+							'default'           => '',
 							'sanitize_callback' => 'sanitize_text_field',
-							'validate_callback' => array( __CLASS__, 'validate_non_empty_string' ),
 							'description'       => __( 'Merchant PayPal payer ID from onboarding callback.', 'jetpack-paypal-payments' ),
 						),
 					),
@@ -318,6 +318,21 @@ class PayPal_REST_Controller {
 	}
 
 	/**
+	 * Sanitize an OAuth credential or token value.
+	 *
+	 * Uses trim() instead of sanitize_text_field() to preserve valid OAuth
+	 * characters (+, /, =) that sanitize_text_field() would strip. These
+	 * values are never rendered to HTML — they go into encrypted storage
+	 * and HTTP Authorization headers.
+	 *
+	 * @param string $value The value to sanitize.
+	 * @return string The trimmed value.
+	 */
+	public static function sanitize_oauth_value( $value ) {
+		return trim( wp_unslash( $value ) );
+	}
+
+	/**
 	 * Validate that a string parameter is non-empty.
 	 *
 	 * @param string          $value   The value to validate.
@@ -360,6 +375,10 @@ class PayPal_REST_Controller {
 
 		// Store the credentials.
 		$stored = PayPal_OAuth::store_credentials( $client_id, $client_secret );
+		if ( is_wp_error( $stored ) ) {
+			PayPal_OAuth::set_environment( $previous_environment );
+			return self::api_error_to_rest_error( $stored );
+		}
 		if ( ! $stored ) {
 			PayPal_OAuth::set_environment( $previous_environment );
 			return new WP_Error(

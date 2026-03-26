@@ -25,6 +25,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 class PayPal_OAuth {
 
 	/**
+	 * Request-scoped cache for decrypted credentials.
+	 * Prevents redundant sodium_crypto_secretbox_open calls within a single request.
+	 *
+	 * @var array|false|null Null = not yet fetched, false = no credentials, array = cached.
+	 */
+	private static $credentials_cache = null;
+
+	/**
 	 * Option key for storing encrypted PayPal client credentials.
 	 *
 	 * @var string
@@ -109,7 +117,7 @@ class PayPal_OAuth {
 		// Clear cached token when environment changes.
 		self::clear_cached_token();
 
-		return update_option( self::ENVIRONMENT_OPTION_KEY, $environment );
+		return update_option( self::ENVIRONMENT_OPTION_KEY, $environment, false );
 	}
 
 	/**
@@ -151,7 +159,7 @@ class PayPal_OAuth {
 	 * @param string $plaintext The string to encrypt.
 	 * @return string Base64-encoded nonce + ciphertext.
 	 */
-	private static function encrypt( $plaintext ) {
+	public static function encrypt( $plaintext ) {
 		$key = self::get_encryption_key();
 		if ( is_wp_error( $key ) ) {
 			return $key;
@@ -169,7 +177,7 @@ class PayPal_OAuth {
 	 * @param string $encoded Base64-encoded nonce + ciphertext.
 	 * @return string|false The decrypted plaintext, or false on failure.
 	 */
-	private static function decrypt( $encoded ) {
+	public static function decrypt( $encoded ) {
 		$decoded = base64_decode( $encoded, true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Decoding binary ciphertext from wp_options storage.
 
 		if ( false === $decoded || strlen( $decoded ) < SODIUM_CRYPTO_SECRETBOX_NONCEBYTES + SODIUM_CRYPTO_SECRETBOX_MACBYTES ) {
@@ -202,11 +210,13 @@ class PayPal_OAuth {
 	 *
 	 * @param string $client_id     The PayPal OAuth client ID.
 	 * @param string $client_secret The PayPal OAuth client secret.
-	 * @return bool True on success, false on failure.
+	 * @return bool|\WP_Error True on success, false on empty input, WP_Error on encryption failure.
 	 */
 	public static function store_credentials( $client_id, $client_secret ) {
-		$client_id     = sanitize_text_field( $client_id );
-		$client_secret = sanitize_text_field( $client_secret );
+		// Use trim() instead of sanitize_text_field() to preserve valid OAuth
+		// credential characters (+, /, =) that sanitize_text_field() may strip.
+		$client_id     = trim( wp_unslash( $client_id ) );
+		$client_secret = trim( wp_unslash( $client_secret ) );
 
 		if ( empty( $client_id ) || empty( $client_secret ) ) {
 			return false;
@@ -229,7 +239,8 @@ class PayPal_OAuth {
 			'stored_at'               => time(),
 		);
 
-		// Clear any existing cached token since credentials changed.
+		// Clear caches since credentials changed.
+		self::$credentials_cache = null;
 		self::clear_cached_token();
 
 		return update_option( self::CREDENTIALS_OPTION_KEY, $credentials, false );
@@ -245,12 +256,18 @@ class PayPal_OAuth {
 	 * @return array|false Array with 'client_id' and 'client_secret' keys, or false if not set.
 	 */
 	public static function get_credentials() {
+		// Return from request-scoped cache if available.
+		if ( null !== self::$credentials_cache ) {
+			return self::$credentials_cache;
+		}
+
 		$credentials = get_option( self::CREDENTIALS_OPTION_KEY, false );
 
 		if ( ! is_array( $credentials )
 			|| empty( $credentials['encrypted_client_id'] )
 			|| empty( $credentials['encrypted_client_secret'] )
 		) {
+			self::$credentials_cache = false;
 			return false;
 		}
 
@@ -263,10 +280,12 @@ class PayPal_OAuth {
 			return false;
 		}
 
-		return array(
+		self::$credentials_cache = array(
 			'client_id'     => $client_id,
 			'client_secret' => $client_secret,
 		);
+
+		return self::$credentials_cache;
 	}
 
 	/**
@@ -284,6 +303,7 @@ class PayPal_OAuth {
 	 * @return bool True on success, false on failure.
 	 */
 	public static function delete_credentials() {
+		self::$credentials_cache = null;
 		self::clear_cached_token();
 		return delete_option( self::CREDENTIALS_OPTION_KEY );
 	}
@@ -297,13 +317,20 @@ class PayPal_OAuth {
 	 * @return string|\WP_Error The access token string, or WP_Error on failure.
 	 */
 	public static function get_access_token() {
-		// Try cached token first.
-		$cached_token = get_transient( self::TOKEN_TRANSIENT_KEY );
-		if ( false !== $cached_token && is_string( $cached_token ) ) {
+		// Try cached token first (stored encrypted).
+		$cached_encrypted = get_transient( self::TOKEN_TRANSIENT_KEY );
+		if ( false !== $cached_encrypted && is_string( $cached_encrypted ) ) {
 			// Double-check absolute expiry timestamp in case the transient
 			// survived an object-cache flush or clock drift.
 			$expires_at = get_option( self::TOKEN_EXPIRES_AT_OPTION_KEY, 0 );
 			if ( $expires_at > 0 && time() >= $expires_at ) {
+				self::clear_cached_token();
+				return self::request_access_token();
+			}
+
+			$cached_token = self::decrypt( $cached_encrypted );
+			if ( false === $cached_token ) {
+				// Decryption failed — request a fresh token.
 				self::clear_cached_token();
 				return self::request_access_token();
 			}
@@ -389,13 +416,17 @@ class PayPal_OAuth {
 			);
 		}
 
-		$access_token = sanitize_text_field( $data['access_token'] );
+		// Use trim() to preserve valid OAuth token characters that sanitize_text_field() may strip.
+		$access_token = trim( $data['access_token'] );
 		$expires_in   = isset( $data['expires_in'] ) ? absint( $data['expires_in'] ) : 0;
 
-		// Cache the token with a buffer before expiry.
+		// Cache the token encrypted with a buffer before expiry.
 		if ( $expires_in > self::TOKEN_EXPIRY_BUFFER ) {
-			$cache_duration = $expires_in - self::TOKEN_EXPIRY_BUFFER;
-			set_transient( self::TOKEN_TRANSIENT_KEY, $access_token, $cache_duration );
+			$cache_duration  = $expires_in - self::TOKEN_EXPIRY_BUFFER;
+			$encrypted_token = self::encrypt( $access_token );
+			if ( ! is_wp_error( $encrypted_token ) ) {
+				set_transient( self::TOKEN_TRANSIENT_KEY, $encrypted_token, $cache_duration );
+			}
 
 			// Store absolute expiry timestamp as a fallback for object-cache eviction.
 			update_option( self::TOKEN_EXPIRES_AT_OPTION_KEY, time() + $cache_duration, false );
@@ -510,12 +541,12 @@ class PayPal_OAuth {
 		);
 
 		// Include onboarding method if connected via Partner Referrals.
-		$method = get_option( 'jetpack_paypal_payment_buttons_onboarding_method', '' );
+		$method = get_option( PayPal_Partner_Onboarding::ONBOARDING_METHOD_OPTION_KEY, '' );
 		if ( ! empty( $method ) ) {
 			$status['onboarding_method'] = $method;
 		}
 
-		$merchant_id = get_option( 'jetpack_paypal_payment_buttons_merchant_id', '' );
+		$merchant_id = get_option( PayPal_Partner_Onboarding::MERCHANT_ID_OPTION_KEY, '' );
 		if ( ! empty( $merchant_id ) ) {
 			$status['merchant_id'] = $merchant_id;
 		}
@@ -532,6 +563,7 @@ class PayPal_OAuth {
 	 * @return void
 	 */
 	public static function disconnect() {
+		self::$credentials_cache = null;
 		delete_option( self::CREDENTIALS_OPTION_KEY );
 		delete_option( self::ENVIRONMENT_OPTION_KEY );
 		delete_option( self::TOKEN_EXPIRES_AT_OPTION_KEY );

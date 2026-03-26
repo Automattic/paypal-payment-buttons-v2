@@ -177,7 +177,7 @@ class PayPal_Payment_Buttons {
 	 * @return string SVG markup.
 	 */
 	private static function get_paypal_logo_svg() {
-		return '<svg class="jetpack-paypal-button__logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 101 32" width="80" height="20" aria-label="PayPal">'
+		return '<svg class="jetpack-paypal-button__logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 101 32" width="80" height="20" aria-hidden="true" focusable="false">'
 			. '<path d="M12.5 4.7h-7c-.5 0-.9.3-1 .8L1.6 25c0 .3.2.6.6.6h3.3c.5 0 .9-.3 1-.8l.8-5.4c0-.5.5-.8 1-.8h2.3c4.7 0 7.4-2.3 8.1-6.8.3-2 0-3.5-.9-4.6C16.7 5.5 14.9 4.7 12.5 4.7zm.8 6.7c-.4 2.6-2.3 2.6-4.2 2.6h-1l.8-4.8c0-.3.3-.5.6-.5h.5c1.3 0 2.5 0 3.1.7.4.5.5 1.2.2 2z" fill="#253B80"/>'
 			. '<path d="M35.2 11.3h-3.3c-.3 0-.5.2-.6.5l-.1.9-.2-.3c-.7-1-2.2-1.3-3.7-1.3-3.5 0-6.4 2.6-7 6.3-.3 1.8.1 3.6 1.2 4.8 1 1.1 2.4 1.6 4.1 1.6 2.9 0 4.5-1.9 4.5-1.9l-.1.9c0 .3.2.6.6.6h3c.5 0 .9-.3 1-.8l1.8-11.5c-.1-.4-.4-.8-.7-.8zm-4.5 6.1c-.3 1.8-1.8 3-3.6 3-.9 0-1.6-.3-2.1-.8-.4-.5-.6-1.3-.5-2.1.3-1.8 1.8-3 3.6-3 .9 0 1.6.3 2.1.8.4.6.6 1.3.5 2.1z" fill="#253B80"/>'
 			. '<path d="M55.1 11.3h-3.4c-.3 0-.6.2-.8.4l-4.5 6.6-1.9-6.4c-.1-.4-.5-.6-.9-.6h-3.3c-.4 0-.7.4-.5.7l3.6 10.5-3.4 4.8c-.3.4 0 .9.4.9h3.3c.3 0 .6-.1.8-.4l10.9-15.7c.3-.4 0-.8-.3-.8z" fill="#253B80"/>'
@@ -260,9 +260,10 @@ class PayPal_Payment_Buttons {
 		$debit_button_html = '';
 		if ( $is_stacked ) {
 			$debit_button_html = sprintf(
-				'<a href="%s" class="jetpack-paypal-button__debit-link" target="_blank" rel="noopener noreferrer">%s</a>',
+				'<a href="%s" class="jetpack-paypal-button__debit-link" target="_blank" rel="noopener noreferrer">%s <span class="screen-reader-text">%s</span></a>',
 				$action_url,
-				esc_html__( 'Debit or Credit Card', 'jetpack-paypal-payments' )
+				esc_html__( 'Debit or Credit Card', 'jetpack-paypal-payments' ),
+				esc_html__( '(opens in a new tab)', 'jetpack-paypal-payments' )
 			);
 		}
 
@@ -324,7 +325,7 @@ class PayPal_Payment_Buttons {
 				. '<button type="button" class="jetpack-paypal-button__qr-toggle" data-show-label="' . $qr_show . '" data-hide-label="' . $qr_hide . '" aria-expanded="false">' . $qr_show . '</button>'
 				. '<div class="jetpack-paypal-button__qr-wrapper" style="display:none;">'
 				. '<div class="jetpack-paypal-button__qr-content">'
-				. '<canvas class="jetpack-paypal-button__qr-canvas"></canvas>'
+				. '<canvas class="jetpack-paypal-button__qr-canvas" aria-label="' . esc_attr__( 'QR code for payment link', 'jetpack-paypal-payments' ) . '"></canvas>'
 				. '<div class="jetpack-paypal-button__qr-link">'
 				. '<input type="text" readonly class="jetpack-paypal-button__qr-link-input" value="' . esc_attr( $action_url ) . '" />'
 				. '<button type="button" class="jetpack-paypal-button__qr-copy" data-copy-label="' . $copy_label . '" data-copied-label="' . esc_attr__( 'Copied!', 'jetpack-paypal-payments' ) . '">' . $copy_label . '</button>'
@@ -353,6 +354,7 @@ class PayPal_Payment_Buttons {
 			<a href="%5$s" class="jetpack-paypal-button__paypal-link" target="_blank" rel="noopener noreferrer">
 				%6$s
 				<span class="jetpack-paypal-button__button-text">%7$s</span>
+				<span class="screen-reader-text">%14$s</span>
 			</a>
 			%8$s
 		</div>
@@ -372,7 +374,8 @@ class PayPal_Payment_Buttons {
 			$variants_html,
 			$qr_html,
 			$wrapper_attributes,
-			$image_html
+			$image_html,
+			esc_html__( '(opens in a new tab)', 'jetpack-paypal-payments' )
 		);
 	}
 
@@ -416,11 +419,15 @@ class PayPal_Payment_Buttons {
 				'script_loader_tag',
 				function ( $tag, $handle, $src ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 					if ( 'paypal-payment-buttons-block-head' === $handle ) {
-						// Add namespace to avoid conflicts with other PayPal SDK versions
+						// Add defer to prevent render-blocking.
+						if ( false === strpos( $tag, 'defer' ) ) {
+							$tag = str_replace( ' src=', ' defer src=', $tag );
+						}
+						// Add namespace to avoid conflicts with other PayPal SDK versions.
 						if ( false === strpos( $tag, 'data-namespace' ) ) {
 							$tag = preg_replace( '/(\s+)src=([\'"])/', '$1 data-namespace="paypal_payment_buttons" src=$2', $tag );
 						}
-						// Add partner attribution ID
+						// Add partner attribution ID.
 						if ( false === strpos( $tag, 'data-paypal-partner-attribution-id' ) ) {
 							$tag = preg_replace( '/(\s+)src=([\'"])/', '$1 data-paypal-partner-attribution-id="' . self::PAYPAL_PARTNER_ATTRIBUTION_ID . '" src=$2', $tag );
 						}

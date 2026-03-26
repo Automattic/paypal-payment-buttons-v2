@@ -145,11 +145,24 @@ class PayPal_Partner_Onboarding {
 	 * Creates a referral via POST /v2/customer/partner-referrals and returns
 	 * the action_url for the PayPal mini-browser lightbox.
 	 *
+	 * Prerequisite: Partner-level credentials (Automattic's partner client_id/secret)
+	 * must be pre-configured via PayPal_OAuth::store_credentials() before this method
+	 * is called. These are seeded during plugin activation, not entered by the merchant.
+	 *
 	 * @param string $return_url  The URL PayPal redirects to after onboarding.
 	 * @param string $environment 'sandbox' or 'production'.
 	 * @return array|\WP_Error Array with 'action_url' and 'referral_id', or WP_Error.
 	 */
 	public static function generate_signup_link( $return_url, $environment = 'production' ) {
+		// Enforce HTTPS on the return URL to protect the auth code in transit.
+		if ( 'production' === $environment && 0 !== strpos( $return_url, 'https://' ) ) {
+			return new \WP_Error(
+				'paypal_onboarding_insecure_url',
+				__( 'The return URL must use HTTPS for production onboarding.', 'jetpack-paypal-payments' ),
+				array( 'status' => 400 )
+			);
+		}
+
 		$partner_id = self::get_partner_id();
 		if ( empty( $partner_id ) ) {
 			return new \WP_Error(
@@ -158,9 +171,13 @@ class PayPal_Partner_Onboarding {
 			);
 		}
 
-		// Generate and store a seller nonce for the auth code exchange.
-		$seller_nonce = self::generate_seller_nonce();
-		update_option( self::SELLER_NONCE_OPTION_KEY, $seller_nonce, false );
+		// Generate and store an encrypted seller nonce for the auth code exchange.
+		$seller_nonce     = self::generate_seller_nonce();
+		$encrypted_nonce  = PayPal_OAuth::encrypt( $seller_nonce );
+		if ( is_wp_error( $encrypted_nonce ) ) {
+			return $encrypted_nonce;
+		}
+		update_option( self::SELLER_NONCE_OPTION_KEY, $encrypted_nonce, false );
 
 		// Build the tracking ID from the site URL for uniqueness.
 		$tracking_id = 'woo-ncps-' . substr( md5( get_site_url() ), 0, 12 ) . '-' . time();
@@ -234,15 +251,9 @@ class PayPal_Partner_Onboarding {
 		$body        = json_decode( wp_remote_retrieve_body( $response ), true );
 
 		if ( 201 !== $status_code && 200 !== $status_code ) {
-			$error_msg = isset( $body['message'] ) ? $body['message'] : __( 'Unknown error', 'jetpack-paypal-payments' );
 			return new \WP_Error(
 				'paypal_referral_failed',
-				sprintf(
-					/* translators: 1: HTTP status code, 2: error message */
-					__( 'PayPal onboarding failed (HTTP %1$d): %2$s', 'jetpack-paypal-payments' ),
-					$status_code,
-					sanitize_text_field( $error_msg )
-				),
+				__( 'Could not create a PayPal onboarding link. Please try again or use the manual credentials option.', 'jetpack-paypal-payments' ),
 				array( 'status' => $status_code )
 			);
 		}
@@ -290,11 +301,20 @@ class PayPal_Partner_Onboarding {
 	 * @return true|\WP_Error True on success, WP_Error on failure.
 	 */
 	public static function complete_onboarding( $auth_code, $shared_id, $merchant_id_in_paypal ) {
-		$seller_nonce = get_option( self::SELLER_NONCE_OPTION_KEY, '' );
-		if ( empty( $seller_nonce ) ) {
+		$encrypted_nonce = get_option( self::SELLER_NONCE_OPTION_KEY, '' );
+		if ( empty( $encrypted_nonce ) ) {
 			return new \WP_Error(
 				'paypal_onboarding_no_nonce',
 				__( 'Onboarding session expired. Please try connecting again.', 'jetpack-paypal-payments' )
+			);
+		}
+
+		$seller_nonce = PayPal_OAuth::decrypt( $encrypted_nonce );
+		if ( false === $seller_nonce ) {
+			delete_option( self::SELLER_NONCE_OPTION_KEY );
+			return new \WP_Error(
+				'paypal_onboarding_nonce_corrupt',
+				__( 'Onboarding session data could not be read. Please try connecting again.', 'jetpack-paypal-payments' )
 			);
 		}
 

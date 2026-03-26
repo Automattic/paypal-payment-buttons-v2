@@ -49,6 +49,12 @@ function CopyablePaymentLink( { paymentLink } ) {
 		if ( navigator.clipboard ) {
 			navigator.clipboard.writeText( paymentLink ).then( () => {
 				setCopied( true );
+				if ( window.wp?.a11y?.speak ) {
+					window.wp.a11y.speak(
+						__( 'Payment link copied to clipboard.', 'jetpack-paypal-payments' ),
+						'polite'
+					);
+				}
 				setTimeout( () => setCopied( false ), 2000 );
 			} );
 		}
