@@ -45,7 +45,7 @@
 		},
 		{
 			"step": "runPHP",
-			"code": "<?php require_once 'wordpress/wp-load.php'; update_option( 'jetpack_paypal_payment_buttons_credentials', array( 'client_id' => 'AXBOqFgtrx_DEMO_ID', 'client_secret' => 'EJVcn22Mvwc_DEMO_SECRET', 'hash' => wp_hash( 'AXBOqFgtrx_DEMO_ID' . 'EJVcn22Mvwc_DEMO_SECRET' ), 'stored_at' => time() ) ); update_option( 'jetpack_paypal_payment_buttons_environment', 'sandbox' ); ?>"
+			"code": "<?php require_once 'wordpress/wp-load.php'; /* Seed credentials as if Partner Referrals onboarding completed successfully. In production, these are obtained automatically when the merchant clicks 'Connect with PayPal' and authorizes via the PayPal mini-browser. */ update_option( 'jetpack_paypal_payment_buttons_credentials', array( 'client_id' => 'AXBOqFgtrx_DEMO_ID', 'client_secret' => 'EJVcn22Mvwc_DEMO_SECRET', 'hash' => wp_hash( 'AXBOqFgtrx_DEMO_ID' . 'EJVcn22Mvwc_DEMO_SECRET' ), 'stored_at' => time() ) ); update_option( 'jetpack_paypal_payment_buttons_environment', 'sandbox' ); update_option( 'jetpack_paypal_payment_buttons_merchant_id', 'DEMO_MERCHANT_ID_12345' ); update_option( 'jetpack_paypal_payment_buttons_onboarding_method', 'partner_referrals' ); update_option( 'jetpack_paypal_payment_buttons_partner_id', 'DEMO_PARTNER_ID' ); ?>"
 		},
 		{
 			"step": "runPHP",
