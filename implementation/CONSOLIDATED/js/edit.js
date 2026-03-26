@@ -388,15 +388,18 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 
 				// Define the global callback that PayPal's mini-browser calls on completion.
 				window.paypalOnboardedCallback = ( authCode, sharedId ) => {
-					// Extract merchantIdInPayPal from the URL params if available.
-					// The mini-browser may also pass it via the return URL.
+					// The merchantIdInPayPal comes from return URL params, not sharedId.
+					// sharedId is the partner's shared client ID for the token exchange.
+					const urlParams = new URLSearchParams( window.location.search );
+					const merchantId = urlParams.get( 'merchantIdInPayPal' ) || '';
+
 					apiFetch( {
 						path: `${ API_BASE }/onboarding/complete`,
 						method: 'POST',
 						data: {
 							auth_code: authCode,
 							shared_id: sharedId,
-							merchant_id_in_paypal: sharedId, // Placeholder — updated when return URL params are available.
+							merchant_id_in_paypal: merchantId,
 						},
 					} )
 						.then( completeResponse => {

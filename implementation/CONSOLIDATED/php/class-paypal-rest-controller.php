@@ -360,6 +360,10 @@ class PayPal_REST_Controller {
 
 		// Store the credentials.
 		$stored = PayPal_OAuth::store_credentials( $client_id, $client_secret );
+		if ( is_wp_error( $stored ) ) {
+			PayPal_OAuth::set_environment( $previous_environment );
+			return self::api_error_to_rest_error( $stored );
+		}
 		if ( ! $stored ) {
 			PayPal_OAuth::set_environment( $previous_environment );
 			return new WP_Error(
