@@ -12,7 +12,7 @@
 namespace Automattic\Jetpack\PaypalPayments;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+	exit( 0 );
 }
 
 /**
@@ -133,13 +133,6 @@ class PayPal_OAuth {
 	 * @return string Raw binary key of SODIUM_CRYPTO_SECRETBOX_KEYBYTES length.
 	 */
 	private static function get_encryption_key() {
-		if ( ! defined( 'AUTH_KEY' ) || '' === \AUTH_KEY || 'put your unique phrase here' === \AUTH_KEY ) {
-			return new \WP_Error(
-				'weak_encryption_key',
-				__( 'Your site\'s AUTH_KEY is not configured. Please set unique security keys in wp-config.php before connecting PayPal. Visit https://api.wordpress.org/secret-key/1.1/salt/ to generate them.', 'jetpack-paypal-payments' )
-			);
-		}
-
 		return sodium_crypto_generichash( \AUTH_KEY, '', SODIUM_CRYPTO_SECRETBOX_KEYBYTES );
 	}
 
@@ -152,10 +145,7 @@ class PayPal_OAuth {
 	 * @return string Base64-encoded nonce + ciphertext.
 	 */
 	private static function encrypt( $plaintext ) {
-		$key = self::get_encryption_key();
-		if ( is_wp_error( $key ) ) {
-			return $key;
-		}
+		$key   = self::get_encryption_key();
 		$nonce = random_bytes( SODIUM_CRYPTO_SECRETBOX_NONCEBYTES );
 
 		$ciphertext = sodium_crypto_secretbox( $plaintext, $nonce, $key );
@@ -179,9 +169,6 @@ class PayPal_OAuth {
 		$nonce      = substr( $decoded, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES );
 		$ciphertext = substr( $decoded, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES );
 		$key        = self::get_encryption_key();
-		if ( is_wp_error( $key ) ) {
-			return false;
-		}
 
 		try {
 			$plaintext = sodium_crypto_secretbox_open( $ciphertext, $nonce, $key );
@@ -212,20 +199,9 @@ class PayPal_OAuth {
 			return false;
 		}
 
-		$encrypted_id     = self::encrypt( $client_id );
-		$encrypted_secret = self::encrypt( $client_secret );
-
-		// If encryption failed due to weak AUTH_KEY, propagate the error.
-		if ( is_wp_error( $encrypted_id ) ) {
-			return $encrypted_id;
-		}
-		if ( is_wp_error( $encrypted_secret ) ) {
-			return $encrypted_secret;
-		}
-
 		$credentials = array(
-			'encrypted_client_id'     => $encrypted_id,
-			'encrypted_client_secret' => $encrypted_secret,
+			'encrypted_client_id'     => self::encrypt( $client_id ),
+			'encrypted_client_secret' => self::encrypt( $client_secret ),
 			'stored_at'               => time(),
 		);
 
@@ -504,23 +480,10 @@ class PayPal_OAuth {
 	 * }
 	 */
 	public static function get_connection_status() {
-		$status = array(
+		return array(
 			'connected'   => self::has_credentials(),
 			'environment' => self::get_environment(),
 		);
-
-		// Include onboarding method if connected via Partner Referrals.
-		$method = get_option( 'jetpack_paypal_payment_buttons_onboarding_method', '' );
-		if ( ! empty( $method ) ) {
-			$status['onboarding_method'] = $method;
-		}
-
-		$merchant_id = get_option( 'jetpack_paypal_payment_buttons_merchant_id', '' );
-		if ( ! empty( $merchant_id ) ) {
-			$status['merchant_id'] = $merchant_id;
-		}
-
-		return $status;
 	}
 
 	/**

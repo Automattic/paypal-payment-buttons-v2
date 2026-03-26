@@ -165,11 +165,15 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 	// Edit/preview mode toggle. Start in preview if button already exists.
 	const [ isEditing, setIsEditing ] = useState( ! ( isApiManaged && resourceId && paymentLink ) );
 
-	// Connect form state.
+	// Connect form state (manual credentials — fallback mode).
 	const [ clientId, setClientId ] = useState( '' );
 	const [ clientSecret, setClientSecret ] = useState( '' );
 	const [ connectError, setConnectError ] = useState( null );
 	const [ isConnecting, setIsConnecting ] = useState( false );
+
+	// Partner Referrals onboarding state.
+	const [ isOnboarding, setIsOnboarding ] = useState( false );
+	const [ onboardingError, setOnboardingError ] = useState( null );
 
 	// Wizard step state: 'welcome' | 'dashboard' | 'credentials' | 'success'
 	// Persisted in localStorage so navigating away and back doesn't reset the wizard.
@@ -247,6 +251,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 
 	/**
 	 * Check PayPal connection status on mount.
+	 * Also detects Partner Referrals return URL params for completing onboarding.
 	 */
 	useEffect( () => {
 		apiFetch( { path: `${ API_BASE }/connection` } )
@@ -260,6 +265,26 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 			.finally( () => {
 				setConnectionLoading( false );
 			} );
+
+		// Check if this is a return from Partner Referrals onboarding.
+		const urlParams = new URLSearchParams( window.location.search );
+		const merchantIdInPayPal = urlParams.get( 'merchantIdInPayPal' );
+		const permissionsGranted = urlParams.get( 'permissionsGranted' );
+		if ( merchantIdInPayPal && permissionsGranted === 'true' ) {
+			// The mini-browser callback is the primary flow — this is a fallback
+			// for cases where the lightbox was blocked and a full redirect happened.
+			// The auth code exchange would have already been handled by paypalOnboardedCallback.
+			// Just clean the URL params.
+			const cleanUrl = new URL( window.location.href );
+			cleanUrl.searchParams.delete( 'merchantIdInPayPal' );
+			cleanUrl.searchParams.delete( 'merchantId' );
+			cleanUrl.searchParams.delete( 'permissionsGranted' );
+			cleanUrl.searchParams.delete( 'accountStatus' );
+			cleanUrl.searchParams.delete( 'consentStatus' );
+			cleanUrl.searchParams.delete( 'isEmailConfirmed' );
+			cleanUrl.searchParams.delete( 'paypal_onboard' );
+			window.history.replaceState( {}, '', cleanUrl.toString() );
+		}
 	}, [] );
 
 	/**
@@ -336,6 +361,103 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 				setIsConnecting( false );
 			} );
 	}, [ clientId, clientSecret, environment ] );
+
+	/**
+	 * Handle "Connect with PayPal" via Partner Referrals onboarding.
+	 *
+	 * 1. Requests a signup link from the server
+	 * 2. Opens the PayPal mini-browser lightbox
+	 * 3. On callback, exchanges auth code for credentials
+	 */
+	const handlePartnerOnboarding = useCallback( () => {
+		setOnboardingError( null );
+		setIsOnboarding( true );
+
+		const returnUrl = window.location.origin + '/wp-admin/options-general.php?page=paypal-payment-buttons&paypal_onboard=1';
+
+		apiFetch( {
+			path: `${ API_BASE }/onboarding/signup-link`,
+			method: 'POST',
+			data: {
+				return_url: returnUrl,
+				environment,
+			},
+		} )
+			.then( response => {
+				const actionUrl = response.action_url;
+
+				// Define the global callback that PayPal's mini-browser calls on completion.
+				window.paypalOnboardedCallback = ( authCode, sharedId ) => {
+					// Extract merchantIdInPayPal from the URL params if available.
+					// The mini-browser may also pass it via the return URL.
+					apiFetch( {
+						path: `${ API_BASE }/onboarding/complete`,
+						method: 'POST',
+						data: {
+							auth_code: authCode,
+							shared_id: sharedId,
+							merchant_id_in_paypal: sharedId, // Placeholder — updated when return URL params are available.
+						},
+					} )
+						.then( completeResponse => {
+							setIsConnected( completeResponse.connected );
+							setEnvironment( completeResponse.environment );
+							setWizardStep( 'success' );
+							setIsOnboarding( false );
+						} )
+						.catch( err => {
+							setOnboardingError( getUserFriendlyError( err ) );
+							setIsOnboarding( false );
+						} );
+				};
+
+				// Load PayPal's partner.js lightbox script if not already loaded.
+				const scriptId = 'paypal-partner-js';
+				if ( ! document.getElementById( scriptId ) ) {
+					const ppScript = document.createElement( 'script' );
+					ppScript.id = scriptId;
+					ppScript.src = environment === 'sandbox'
+						? 'https://www.sandbox.paypal.com/webapps/merchantboarding/js/lib/lightbox/partner.js'
+						: 'https://www.paypal.com/webapps/merchantboarding/js/lib/lightbox/partner.js';
+					document.body.appendChild( ppScript );
+
+					ppScript.onload = () => {
+						// Open the mini-browser once the script loads.
+						openPayPalSignup( actionUrl );
+					};
+				} else {
+					openPayPalSignup( actionUrl );
+				}
+			} )
+			.catch( err => {
+				setOnboardingError( getUserFriendlyError( err ) );
+				setIsOnboarding( false );
+			} );
+	}, [ environment ] );
+
+	/**
+	 * Open the PayPal onboarding mini-browser.
+	 *
+	 * @param {string} actionUrl - The PayPal signup URL.
+	 */
+	const openPayPalSignup = useCallback( actionUrl => {
+		// Create a temporary link element that PayPal's partner.js can detect.
+		const link = document.createElement( 'a' );
+		link.setAttribute( 'data-paypal-button', 'true' );
+		link.setAttribute( 'data-paypal-onboard-complete', 'paypalOnboardedCallback' );
+		link.href = actionUrl + '&displayMode=minibrowser';
+		link.target = 'PPFrame';
+		link.style.display = 'none';
+		document.body.appendChild( link );
+
+		// Trigger the click to open the lightbox.
+		link.click();
+
+		// Clean up the temporary element.
+		setTimeout( () => {
+			document.body.removeChild( link );
+		}, 1000 );
+	}, [] );
 
 	/**
 	 * Handle PayPal disconnect with confirmation.
@@ -766,7 +888,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 						</div>
 					) }
 
-					{ /* Step 1: Welcome */ }
+					{ /* Step 1: Welcome — Connect with PayPal (primary) or manual credentials (fallback) */ }
 					{ wizardStep === 'welcome' && (
 						<div className="jetpack-paypal-wizard__welcome">
 							{ paypalLogoSvg }
@@ -777,15 +899,53 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 									'jetpack-paypal-payments'
 								) }
 							</p>
-							<p>
+
+							{ onboardingError && (
+								<Notice status="error" isDismissible onDismiss={ () => setOnboardingError( null ) }>
+									{ onboardingError }
+								</Notice>
+							) }
+
+							<Button
+								variant="primary"
+								onClick={ handlePartnerOnboarding }
+								isBusy={ isOnboarding }
+								disabled={ isOnboarding }
+								className="jetpack-paypal-wizard__connect-button"
+							>
+								{ isOnboarding
+									? __( 'Opening PayPal\u2026', 'jetpack-paypal-payments' )
+									: __( 'Connect with PayPal', 'jetpack-paypal-payments' )
+								}
+							</Button>
+
+							<p className="jetpack-paypal-wizard__hint">
 								{ __(
-									"You will grab API credentials - don't worry; we will walk you through getting them.",
+									'Log in to your PayPal Business account and authorize access. No credentials to copy.',
 									'jetpack-paypal-payments'
 								) }
 							</p>
-							<Button variant="primary" onClick={ () => setWizardStep( 'dashboard' ) }>
-								{ __( 'Get Started', 'jetpack-paypal-payments' ) }
-							</Button>
+
+							<p className="jetpack-paypal-wizard__env-toggle">
+								{ environment === 'production' ? (
+									<Button variant="link" onClick={ () => setEnvironment( 'sandbox' ) }>
+										{ __( 'Use Sandbox for testing', 'jetpack-paypal-payments' ) }
+									</Button>
+								) : (
+									<Button variant="link" onClick={ () => setEnvironment( 'production' ) }>
+										{ __( 'Switch to Production (Live)', 'jetpack-paypal-payments' ) }
+									</Button>
+								) }
+							</p>
+
+							<div className="jetpack-paypal-wizard__manual-fallback">
+								<Button
+									variant="link"
+									onClick={ () => setWizardStep( 'dashboard' ) }
+								>
+									{ __( 'Enter credentials manually (advanced)', 'jetpack-paypal-payments' ) }
+								</Button>
+							</div>
 						</div>
 					) }
 

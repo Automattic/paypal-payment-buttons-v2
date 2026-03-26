@@ -15,7 +15,7 @@
 namespace Automattic\Jetpack\PaypalPayments;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+	exit( 0 );
 }
 
 use WP_Error;
@@ -51,7 +51,7 @@ class PayPal_REST_Controller {
 	 * @return void
 	 */
 	public static function register_routes() {
-		// Connection management (manual credentials — fallback/advanced mode).
+		// Connection management.
 		register_rest_route(
 			self::REST_NAMESPACE,
 			self::ROUTE_BASE . '/connect',
@@ -84,85 +84,6 @@ class PayPal_REST_Controller {
 							'description'       => __( 'PayPal environment: sandbox or production.', 'jetpack-paypal-payments' ),
 						),
 					),
-				),
-			)
-		);
-
-		// Partner Referrals onboarding — generate signup link.
-		register_rest_route(
-			self::REST_NAMESPACE,
-			self::ROUTE_BASE . '/onboarding/signup-link',
-			array(
-				array(
-					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => array( __CLASS__, 'handle_generate_signup_link' ),
-					'permission_callback' => array( __CLASS__, 'manage_options_permission_check' ),
-					'args'                => array(
-						'return_url'  => array(
-							'required'          => true,
-							'type'              => 'string',
-							'format'            => 'uri',
-							'sanitize_callback' => 'esc_url_raw',
-							'description'       => __( 'URL PayPal redirects to after onboarding.', 'jetpack-paypal-payments' ),
-						),
-						'environment' => array(
-							'required'          => false,
-							'type'              => 'string',
-							'default'           => 'production',
-							'enum'              => array( 'sandbox', 'production' ),
-							'sanitize_callback' => 'sanitize_text_field',
-							'description'       => __( 'PayPal environment: sandbox or production.', 'jetpack-paypal-payments' ),
-						),
-					),
-				),
-			)
-		);
-
-		// Partner Referrals onboarding — complete (exchange auth code for credentials).
-		register_rest_route(
-			self::REST_NAMESPACE,
-			self::ROUTE_BASE . '/onboarding/complete',
-			array(
-				array(
-					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => array( __CLASS__, 'handle_onboarding_complete' ),
-					'permission_callback' => array( __CLASS__, 'manage_options_permission_check' ),
-					'args'                => array(
-						'auth_code'            => array(
-							'required'          => true,
-							'type'              => 'string',
-							'sanitize_callback' => 'sanitize_text_field',
-							'validate_callback' => array( __CLASS__, 'validate_non_empty_string' ),
-							'description'       => __( 'Authorization code from PayPal onboarding callback.', 'jetpack-paypal-payments' ),
-						),
-						'shared_id'            => array(
-							'required'          => true,
-							'type'              => 'string',
-							'sanitize_callback' => 'sanitize_text_field',
-							'validate_callback' => array( __CLASS__, 'validate_non_empty_string' ),
-							'description'       => __( 'Shared ID from PayPal onboarding callback.', 'jetpack-paypal-payments' ),
-						),
-						'merchant_id_in_paypal' => array(
-							'required'          => true,
-							'type'              => 'string',
-							'sanitize_callback' => 'sanitize_text_field',
-							'validate_callback' => array( __CLASS__, 'validate_non_empty_string' ),
-							'description'       => __( 'Merchant PayPal payer ID from onboarding callback.', 'jetpack-paypal-payments' ),
-						),
-					),
-				),
-			)
-		);
-
-		// Partner Referrals onboarding — check merchant status.
-		register_rest_route(
-			self::REST_NAMESPACE,
-			self::ROUTE_BASE . '/onboarding/status',
-			array(
-				array(
-					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( __CLASS__, 'handle_merchant_status' ),
-					'permission_callback' => array( __CLASS__, 'manage_options_permission_check' ),
 				),
 			)
 		);
@@ -441,7 +362,6 @@ class PayPal_REST_Controller {
 	 */
 	public static function handle_disconnect( WP_REST_Request $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		PayPal_OAuth::disconnect();
-		PayPal_Partner_Onboarding::cleanup();
 
 		return new WP_REST_Response(
 			array(
@@ -474,89 +394,6 @@ class PayPal_REST_Controller {
 			),
 			200
 		);
-	}
-
-	// --- Partner Referrals onboarding handlers ---
-
-	/**
-	 * Handle POST /paypal/onboarding/signup-link -- generate a Partner Referrals signup URL.
-	 *
-	 * @param WP_REST_Request $request The REST request.
-	 * @return WP_REST_Response|WP_Error Response with action_url on success.
-	 */
-	public static function handle_generate_signup_link( WP_REST_Request $request ) {
-		$return_url  = $request->get_param( 'return_url' );
-		$environment = $request->get_param( 'environment' );
-
-		// Set environment so the referral uses the right PayPal base URL.
-		PayPal_OAuth::set_environment( $environment );
-
-		$result = PayPal_Partner_Onboarding::generate_signup_link( $return_url, $environment );
-
-		if ( is_wp_error( $result ) ) {
-			return self::api_error_to_rest_error( $result );
-		}
-
-		return new WP_REST_Response(
-			array(
-				'action_url'  => $result['action_url'],
-				'referral_id' => $result['referral_id'],
-				'environment' => $environment,
-			),
-			200
-		);
-	}
-
-	/**
-	 * Handle POST /paypal/onboarding/complete -- exchange auth code for credentials.
-	 *
-	 * Called by the block editor after the merchant completes the PayPal
-	 * mini-browser onboarding flow.
-	 *
-	 * @param WP_REST_Request $request The REST request.
-	 * @return WP_REST_Response|WP_Error Response on success, WP_Error on failure.
-	 */
-	public static function handle_onboarding_complete( WP_REST_Request $request ) {
-		$auth_code            = $request->get_param( 'auth_code' );
-		$shared_id            = $request->get_param( 'shared_id' );
-		$merchant_id_in_paypal = $request->get_param( 'merchant_id_in_paypal' );
-
-		$result = PayPal_Partner_Onboarding::complete_onboarding(
-			$auth_code,
-			$shared_id,
-			$merchant_id_in_paypal
-		);
-
-		if ( is_wp_error( $result ) ) {
-			return self::api_error_to_rest_error( $result );
-		}
-
-		return new WP_REST_Response(
-			array(
-				'connected'   => true,
-				'environment' => PayPal_OAuth::get_environment(),
-				'merchant_id' => PayPal_Partner_Onboarding::get_merchant_id(),
-				'method'      => 'partner_referrals',
-				'message'     => __( 'PayPal account connected successfully via Connect with PayPal.', 'jetpack-paypal-payments' ),
-			),
-			200
-		);
-	}
-
-	/**
-	 * Handle GET /paypal/onboarding/status -- check merchant integration status.
-	 *
-	 * @param WP_REST_Request $request The REST request.
-	 * @return WP_REST_Response|WP_Error Response with merchant status.
-	 */
-	public static function handle_merchant_status( WP_REST_Request $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
-		$status = PayPal_Partner_Onboarding::check_merchant_status();
-
-		if ( is_wp_error( $status ) ) {
-			return self::api_error_to_rest_error( $status );
-		}
-
-		return new WP_REST_Response( $status, 200 );
 	}
 
 	// --- Button CRUD handlers ---
@@ -727,6 +564,10 @@ class PayPal_REST_Controller {
 			$attributes['productDescription'] = $first_item['description'];
 		}
 
+		if ( ! empty( $first_item['image_url'] ) ) {
+			$attributes['imageUrl'] = $first_item['image_url'];
+		}
+
 		$return_url = $request->get_param( 'return_url' );
 		if ( ! empty( $return_url ) ) {
 			$attributes['returnUrl'] = $return_url;
@@ -829,6 +670,10 @@ class PayPal_REST_Controller {
 							'required' => false,
 							'default'  => '1',
 						),
+						'image_url'   => array(
+							'type'   => 'string',
+							'format' => 'uri',
+						),
 					),
 				),
 			),
@@ -902,6 +747,10 @@ class PayPal_REST_Controller {
 			if ( ! empty( $item['quantity'] ) ) {
 				$clean_item['quantity'] = sanitize_text_field( $item['quantity'] );
 			}
+			if ( ! empty( $item['image_url'] ) ) {
+				$clean_item['image_url'] = esc_url_raw( $item['image_url'] );
+			}
+
 			$sanitized[] = $clean_item;
 		}
 
