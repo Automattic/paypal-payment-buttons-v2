@@ -1,1 +1,9 @@
 *.zip
+
+# E2E test artifacts
+compat-plugin/tests/e2e/output/
+compat-plugin/tests/e2e/test-results/
+test-results/
+
+# wp-env state
+.wp-env/
