@@ -504,10 +504,23 @@ class PayPal_OAuth {
 	 * }
 	 */
 	public static function get_connection_status() {
-		return array(
+		$status = array(
 			'connected'   => self::has_credentials(),
 			'environment' => self::get_environment(),
 		);
+
+		// Include onboarding method if connected via Partner Referrals.
+		$method = get_option( 'jetpack_paypal_payment_buttons_onboarding_method', '' );
+		if ( ! empty( $method ) ) {
+			$status['onboarding_method'] = $method;
+		}
+
+		$merchant_id = get_option( 'jetpack_paypal_payment_buttons_merchant_id', '' );
+		if ( ! empty( $merchant_id ) ) {
+			$status['merchant_id'] = $merchant_id;
+		}
+
+		return $status;
 	}
 
 	/**
