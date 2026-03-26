@@ -25,6 +25,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 class PayPal_OAuth {
 
 	/**
+	 * Request-scoped cache for decrypted credentials.
+	 * Prevents redundant sodium_crypto_secretbox_open calls within a single request.
+	 *
+	 * @var array|false|null Null = not yet fetched, false = no credentials, array = cached.
+	 */
+	private static $credentials_cache = null;
+
+	/**
 	 * Option key for storing encrypted PayPal client credentials.
 	 *
 	 * @var string
@@ -109,7 +117,7 @@ class PayPal_OAuth {
 		// Clear cached token when environment changes.
 		self::clear_cached_token();
 
-		return update_option( self::ENVIRONMENT_OPTION_KEY, $environment );
+		return update_option( self::ENVIRONMENT_OPTION_KEY, $environment, false );
 	}
 
 	/**
@@ -229,7 +237,8 @@ class PayPal_OAuth {
 			'stored_at'               => time(),
 		);
 
-		// Clear any existing cached token since credentials changed.
+		// Clear caches since credentials changed.
+		self::$credentials_cache = null;
 		self::clear_cached_token();
 
 		return update_option( self::CREDENTIALS_OPTION_KEY, $credentials, false );
@@ -245,12 +254,18 @@ class PayPal_OAuth {
 	 * @return array|false Array with 'client_id' and 'client_secret' keys, or false if not set.
 	 */
 	public static function get_credentials() {
+		// Return from request-scoped cache if available.
+		if ( null !== self::$credentials_cache ) {
+			return self::$credentials_cache;
+		}
+
 		$credentials = get_option( self::CREDENTIALS_OPTION_KEY, false );
 
 		if ( ! is_array( $credentials )
 			|| empty( $credentials['encrypted_client_id'] )
 			|| empty( $credentials['encrypted_client_secret'] )
 		) {
+			self::$credentials_cache = false;
 			return false;
 		}
 
@@ -263,10 +278,12 @@ class PayPal_OAuth {
 			return false;
 		}
 
-		return array(
+		self::$credentials_cache = array(
 			'client_id'     => $client_id,
 			'client_secret' => $client_secret,
 		);
+
+		return self::$credentials_cache;
 	}
 
 	/**
@@ -284,6 +301,7 @@ class PayPal_OAuth {
 	 * @return bool True on success, false on failure.
 	 */
 	public static function delete_credentials() {
+		self::$credentials_cache = null;
 		self::clear_cached_token();
 		return delete_option( self::CREDENTIALS_OPTION_KEY );
 	}
@@ -532,6 +550,7 @@ class PayPal_OAuth {
 	 * @return void
 	 */
 	public static function disconnect() {
+		self::$credentials_cache = null;
 		delete_option( self::CREDENTIALS_OPTION_KEY );
 		delete_option( self::ENVIRONMENT_OPTION_KEY );
 		delete_option( self::TOKEN_EXPIRES_AT_OPTION_KEY );

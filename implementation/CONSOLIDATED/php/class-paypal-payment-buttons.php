@@ -416,11 +416,15 @@ class PayPal_Payment_Buttons {
 				'script_loader_tag',
 				function ( $tag, $handle, $src ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 					if ( 'paypal-payment-buttons-block-head' === $handle ) {
-						// Add namespace to avoid conflicts with other PayPal SDK versions
+						// Add defer to prevent render-blocking.
+						if ( false === strpos( $tag, 'defer' ) ) {
+							$tag = str_replace( ' src=', ' defer src=', $tag );
+						}
+						// Add namespace to avoid conflicts with other PayPal SDK versions.
 						if ( false === strpos( $tag, 'data-namespace' ) ) {
 							$tag = preg_replace( '/(\s+)src=([\'"])/', '$1 data-namespace="paypal_payment_buttons" src=$2', $tag );
 						}
-						// Add partner attribution ID
+						// Add partner attribution ID.
 						if ( false === strpos( $tag, 'data-paypal-partner-attribution-id' ) ) {
 							$tag = preg_replace( '/(\s+)src=([\'"])/', '$1 data-paypal-partner-attribution-id="' . self::PAYPAL_PARTNER_ATTRIBUTION_ID . '" src=$2', $tag );
 						}
