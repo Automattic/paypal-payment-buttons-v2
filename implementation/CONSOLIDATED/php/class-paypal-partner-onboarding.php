@@ -145,6 +145,10 @@ class PayPal_Partner_Onboarding {
 	 * Creates a referral via POST /v2/customer/partner-referrals and returns
 	 * the action_url for the PayPal mini-browser lightbox.
 	 *
+	 * Prerequisite: Partner-level credentials (Automattic's partner client_id/secret)
+	 * must be pre-configured via PayPal_OAuth::store_credentials() before this method
+	 * is called. These are seeded during plugin activation, not entered by the merchant.
+	 *
 	 * @param string $return_url  The URL PayPal redirects to after onboarding.
 	 * @param string $environment 'sandbox' or 'production'.
 	 * @return array|\WP_Error Array with 'action_url' and 'referral_id', or WP_Error.

@@ -210,7 +210,7 @@ class PayPal_OAuth {
 	 *
 	 * @param string $client_id     The PayPal OAuth client ID.
 	 * @param string $client_secret The PayPal OAuth client secret.
-	 * @return bool True on success, false on failure.
+	 * @return bool|\WP_Error True on success, false on empty input, WP_Error on encryption failure.
 	 */
 	public static function store_credentials( $client_id, $client_secret ) {
 		// Use trim() instead of sanitize_text_field() to preserve valid OAuth
@@ -541,12 +541,12 @@ class PayPal_OAuth {
 		);
 
 		// Include onboarding method if connected via Partner Referrals.
-		$method = get_option( 'jetpack_paypal_payment_buttons_onboarding_method', '' );
+		$method = get_option( PayPal_Partner_Onboarding::ONBOARDING_METHOD_OPTION_KEY, '' );
 		if ( ! empty( $method ) ) {
 			$status['onboarding_method'] = $method;
 		}
 
-		$merchant_id = get_option( 'jetpack_paypal_payment_buttons_merchant_id', '' );
+		$merchant_id = get_option( PayPal_Partner_Onboarding::MERCHANT_ID_OPTION_KEY, '' );
 		if ( ! empty( $merchant_id ) ) {
 			$status['merchant_id'] = $merchant_id;
 		}

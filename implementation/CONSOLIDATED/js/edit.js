@@ -430,10 +430,13 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 							setEnvironment( completeResponse.environment );
 							setWizardStep( 'success' );
 							setIsOnboarding( false );
+							speak( __( 'PayPal account connected successfully.', 'jetpack-paypal-payments' ) );
 						} )
 						.catch( err => {
-							setOnboardingError( getUserFriendlyError( err ) );
+							const msg = getUserFriendlyError( err );
+							setOnboardingError( msg );
 							setIsOnboarding( false );
+							speak( msg, 'assertive' );
 						} );
 				};
 
