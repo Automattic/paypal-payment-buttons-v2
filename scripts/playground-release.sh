@@ -87,7 +87,7 @@ echo "  created: $ZIP_PATH ($(du -h "$ZIP_PATH" | cut -f1))"
 # 6. Update playground blueprint
 # ---------------------------------------------------------------
 echo "--- Updating playground blueprint ---"
-sed -i '' "s|releases/download/v[0-9.]*-playground/|releases/download/${TAG}/|g" "$REPO_ROOT/playground-blueprint.json"
+sed -i '' "s|releases/download/v[0-9.]*-playground/paypal-payment-buttons[^\"]*\.zip|releases/download/${TAG}/paypal-payment-buttons-v${VERSION}.zip|g" "$REPO_ROOT/playground-blueprint.json"
 sed -i '' "s|Preview (v[0-9.]*)|Preview (v${VERSION})|g" "$REPO_ROOT/playground-blueprint.json"
 echo "  blueprint updated ✓"
 
