@@ -52,8 +52,8 @@ pnpm jest extensions/plugins/paypal-payment-buttons
 |---|---|---|
 | `validation.test.js` | 16 | `validatePrice`, `validateProductName`, `validateDescription`, `getUserFriendlyError`, currency set — fixed missing `sprintf` in `@wordpress/i18n` mock |
 | `edit.test.js` | — | Wizard flow assertions updated for WOOPTP-162: navigate Welcome → Dashboard → Credentials before asserting fields; environment field is a link-button toggle, not SelectControl; connect label is "Connect" not "Connect PayPal" |
-| `paypal-button-preview.test.js` | 11 | Product card rendering, currency formatting, layout variants, click prevention, PayPal logo |
-| `save.test.js` | 6 | API-managed rendering, legacy rendering, stacked/single layouts, empty fallback |
+| `paypal-button-preview.test.js` | 11 | Product card rendering, currency formatting, theme-native button styling, click prevention, "Powered by PayPal" attribution |
+| `save.test.js` | 6 | API-managed rendering, legacy rendering, wp-element-button output, empty fallback |
 | `deprecated.test.js` | 8 | `isEligible` detection, `migrate` attribute transformation, deprecated save markup |
 
 **Pass criteria:** 100% pass rate, zero skipped. ✅ Met — 2026-03-15
@@ -80,7 +80,7 @@ pnpm env:up && pnpm test:run
 |---|---|---|---|---|
 | Credential Wizard Flow | 14 | ✅ 14 pass | Welcome → Dashboard → Credentials → Success wizard, show/hide toggle, dashboard link URL, whitespace trimming, Client ID format warning, environment default, sandbox toggle + warning, inline error on bad credentials, back nav preserves data, Success CTA transition | WOOPTP-162 |
 | Create Button Flow | 5 | ✅ 5 pass | Form rendering, disabled state, button creation + preview, edit/preview toolbar toggle, edit mode with existing data | WOOPTP-154 |
-| Frontend Rendering | 2 | ✅ 2 pass | Published post PayPal button + payment link, stacked layout debit/credit | WOOPTP-154 |
+| Frontend Rendering | 2 | ✅ 2 pass | Published post "Buy Now" button + payment link, "Powered by PayPal" attribution | WOOPTP-154 |
 | Error Flow | 4 | ✅ 4 pass | Empty name disabled, zero price disabled, blur field error, API 400 notice | WOOPTP-154 |
 | Legacy Block Compatibility | 2 | ✅ 1 pass, 1 skip | Legacy paste-code indicator in editor; frontend rendering skipped (compat-plugin save markup differs) | WOOPTP-154 |
 | Disconnect Flow | 2 | ⏭ 2 skip | Disconnect/delete via sidebar InspectorControls — skipped because compat-plugin sidebar panels differ from Jetpack version | WOOPTP-154 |

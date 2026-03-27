@@ -16,8 +16,8 @@ Everything is already set up and activated for you: the PayPal Payment Buttons p
 
 1. In the left sidebar, click **Posts**.
 2. You'll see four demo posts:
-   - **PayPal Button — Stacked Layout** — A gold PayPal button with a "Debit or Credit Card" option below it ($29.99 USD)
-   - **PayPal Button — Single Layout** — Just the PayPal button by itself ($9.99 USD)
+   - **PayPal Button — Standard** — A theme-native "Buy Now" button with "Powered by PayPal" attribution ($29.99 USD)
+   - **PayPal Button — Minimal** — A single "Buy Now" button ($9.99 USD)
    - **PayPal Button — Multiple Currencies** — Two buttons on one page, one in EUR and one in GBP
    - **PayPal Button — Product Variants** — A T-shirt with 3 color options (including per-option pricing) and 4 sizes
 3. Click any post title, then click **View Post** to see how it looks on the front end.
@@ -25,7 +25,7 @@ Everything is already set up and activated for you: the PayPal Payment Buttons p
 ## Things to try
 
 - **See the buttons as a visitor would** — Click "View Post" on any demo post to see the rendered PayPal buttons.
-- **Edit a button** — Open a demo post, click Edit, then click the PayPal button block. The settings panel on the right lets you change the product name, price, currency, and layout.
+- **Edit a button** — Open a demo post, click Edit, then click the PayPal button block. The settings panel on the right lets you change the product name, price, and currency.
 - **Create a new button from scratch** — Go to Posts > Add New Post, click the **+** button in the top-left of the editor, search for "PayPal", and add the PayPal Payment Buttons block.
 - **Disconnect and reconnect** — In the block settings, click "Disconnect" to reset credentials. You'll see the connect screen with both the "Connect with PayPal" button (Partner Referrals) and the "Enter credentials manually" fallback option.
 

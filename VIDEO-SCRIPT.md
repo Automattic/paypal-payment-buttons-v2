@@ -42,13 +42,13 @@
 3. Currency: USD (already selected)
 4. Description: "A premium widget with all the features you need."
 5. Click "Create Button & Link"
-6. Preview appears with gold PayPal button
+6. Preview appears with theme-native "Buy Now" button and "Powered by PayPal" attribution
 
 **Caption:** "Fill in your product details and click Create. The plugin creates a payment link via PayPal's API — both an embeddable button and a shareable URL."
 
 ### 0:55-1:05 — Live Preview + Copy Link
 **Visual:**
-1. Show the editor preview (product card + PayPal button)
+1. Show the editor preview (product card + "Buy Now" button with "Powered by PayPal")
 2. Click "Copy Link" button → "Copied!" feedback
 3. Show the payment link URL
 
@@ -58,10 +58,10 @@
 **Visual:**
 1. Click "Publish"
 2. View the published post
-3. Show the rendered PayPal button (gold + debit/credit stacked layout)
+3. Show the rendered "Buy Now" button (theme-native styling with "Powered by PayPal" attribution)
 4. Hover over the button — shows it links to PayPal checkout
 
-**Caption:** "Publish your post. Visitors see a branded PayPal button that takes them straight to checkout."
+**Caption:** "Publish your post. Visitors see a clean 'Buy Now' button that matches your theme, with 'Powered by PayPal' below. One click takes them to checkout."
 
 ### 1:15-1:25 — Admin Dashboard
 **Visual:**

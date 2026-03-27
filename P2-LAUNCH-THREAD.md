@@ -74,13 +74,10 @@ The editor preview matches the published frontend exactly. WYSIWYG for payment b
 
 ### Published Frontend
 
-Clean, PayPal-branded buttons with product info, price with currency symbols, and stacked layout (PayPal + Debit/Credit Card).
+Clean, theme-native "Buy Now" buttons that inherit your active theme's styles, with product info, price with currency symbols, and "Powered by PayPal" attribution below.
 
-> **Screenshot: Published PayPal button**
+> **Screenshot: Published "Buy Now" button with "Powered by PayPal" attribution**
 > `screenshots/screenshot-4-frontend.png`
-
-> **Screenshot: Stacked layout close-up**
-> `screenshots/screenshot-5-stacked.png`
 
 ### Payment Links Admin Dashboard
 

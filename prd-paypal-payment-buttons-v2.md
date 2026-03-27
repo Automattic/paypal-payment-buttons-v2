@@ -61,7 +61,7 @@ PayPal Pay Links & Buttons API (v1/checkout/payment-resources)
     ↓ Response with button ID + payment URL
 Block stores structured attributes (button_id, payment_url, type, etc.)
     ↓ Frontend render
-PayPal JS SDK renders hosted button with BN attribution
+Theme-native button (wp-element-button) with "Powered by PayPal" attribution
 ```
 
 ### 4.3 Key Technical Components
@@ -104,7 +104,7 @@ PayPal JS SDK renders hosted button with BN attribution
 - BN code injection for revenue attribution
 - Block editor form UI replacing the paste-code textarea
 - Live button preview in editor
-- Frontend rendering via PayPal JS SDK with attribution
+- Frontend rendering of theme-native button with "Powered by PayPal" attribution
 - Backward compatibility with existing paste-code blocks (don't break them)
 - Unit tests (PHP + JS) and E2E tests
 - Updated documentation and readme.txt
