@@ -128,14 +128,14 @@ class PayPal_REST_Controller {
 					'callback'            => array( __CLASS__, 'handle_onboarding_complete' ),
 					'permission_callback' => array( __CLASS__, 'manage_options_permission_check' ),
 					'args'                => array(
-						'auth_code'            => array(
+						'auth_code'             => array(
 							'required'          => true,
 							'type'              => 'string',
 							'sanitize_callback' => array( __CLASS__, 'sanitize_oauth_value' ),
 							'validate_callback' => array( __CLASS__, 'validate_non_empty_string' ),
 							'description'       => __( 'Authorization code from PayPal onboarding callback.', 'jetpack-paypal-payments' ),
 						),
-						'shared_id'            => array(
+						'shared_id'             => array(
 							'required'          => true,
 							'type'              => 'string',
 							'sanitize_callback' => array( __CLASS__, 'sanitize_oauth_value' ),
@@ -536,8 +536,8 @@ class PayPal_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response on success, WP_Error on failure.
 	 */
 	public static function handle_onboarding_complete( WP_REST_Request $request ) {
-		$auth_code            = $request->get_param( 'auth_code' );
-		$shared_id            = $request->get_param( 'shared_id' );
+		$auth_code             = $request->get_param( 'auth_code' );
+		$shared_id             = $request->get_param( 'shared_id' );
 		$merchant_id_in_paypal = $request->get_param( 'merchant_id_in_paypal' );
 
 		$result = PayPal_Partner_Onboarding::complete_onboarding(
