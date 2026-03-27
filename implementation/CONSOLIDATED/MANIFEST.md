@@ -1,6 +1,6 @@
 # CONSOLIDATED — Canonical File Manifest
 
-**Produced:** 2026-03-14 | **Updated:** 2026-03-15
+**Produced:** 2026-03-14 | **Updated:** 2026-03-26
 **Purpose:** Single source of truth for all files to be applied to the Jetpack repo for PR submission.
 **Apply script:** `./apply-to-jetpack.sh [JETPACK_ROOT]`
 **Target:** `projects/packages/paypal-payments/src/paypal-payment-buttons/`
@@ -17,7 +17,7 @@ Each file is the canonical final version: the highest-numbered ticket that last 
 | `php/class-paypal-rest-controller.php` | WOOPTP-164 | Includes token pre-validation on connect (WOOPTP-164) and previous-environment restore fix (P2) |
 | `php/class-paypal-api-client.php` | WOOPTP-151 | Includes retry logic, URL domain whitelist, BN code via `at_code` query param |
 | `php/class-paypal-attribute-mapper.php` | WOOPTP-148 | Validation, bidirectional mapping, merge logic |
-| `php/class-paypal-payment-buttons.php` | WOOPTP-161 + WOOPTP-167 | WOOPTP-161 base; `register_standalone_script_stubs()` added per WOOPTP-167 |
+| `php/class-paypal-payment-buttons.php` | WOOPTP-161 + WOOPTP-167 | WOOPTP-161 base; `register_standalone_script_stubs()` per WOOPTP-167; theme-native checkout button (2026-03-26) — removed PayPal logo SVG, debit button, `get_paypal_logo_svg()` method; uses `wp-element-button`; default "Buy Now" |
 
 ---
 
@@ -25,11 +25,12 @@ Each file is the canonical final version: the highest-numbered ticket that last 
 
 | File | Source Ticket | Notes |
 |------|--------------|-------|
-| `js/edit.js` | WOOPTP-162 | Final wizard UX with all P2 fixes |
-| `js/save.js` | WOOPTP-156 | API-managed + legacy save paths |
+| `js/edit.js` | WOOPTP-162 | Final wizard UX; removed buttonType selector and PayPal branding (2026-03-26) |
+| `js/save.js` | WOOPTP-156 | API-managed + legacy save paths; theme-native `wp-element-button` checkout link, default "Buy Now" (2026-03-26) |
 | `js/deprecated.js` | WOOPTP-152 | Block migration handler |
 | `js/index.js` | WOOPTP-152 | Block registration entry point |
-| `js/paypal-button-preview.js` | WOOPTP-156 | Product card preview component |
+| `js/paypal-button-preview.js` | WOOPTP-156 | Product card preview; neutral checkout button, removed PayPal logo and debit button (2026-03-26) |
+| ~~`js/paypal-logo.js`~~ | — | **Deleted 2026-03-26** — orphaned after PayPal branding removed from button |
 | `js/validation.js` | WOOPTP-153 | Extracted validation module (testable) |
 | `js/webpack.config.blocks.js` | WOOPTP-161 | Webpack build config |
 
@@ -39,8 +40,8 @@ Each file is the canonical final version: the highest-numbered ticket that last 
 
 | File | Source Ticket | Notes |
 |------|--------------|-------|
-| `scss/editor.scss` | WOOPTP-162 | Final editor styles including wizard steps |
-| `scss/style.scss` | WOOPTP-156 | Frontend button styles |
+| `scss/editor.scss` | WOOPTP-162 | Editor styles; neutral checkout button preview replacing PayPal gold (2026-03-26) |
+| `scss/style.scss` | WOOPTP-156 | Frontend styles; removed PayPal brand colors and debit button styles, `wp-element-button` theme inheritance (2026-03-26) |
 
 ---
 
@@ -48,7 +49,7 @@ Each file is the canonical final version: the highest-numbered ticket that last 
 
 | File | Source Ticket | Notes |
 |------|--------------|-------|
-| `block/block.json` | WOOPTP-161 | V2 block metadata |
+| `block/block.json` | WOOPTP-161 | V2 block metadata; `buttonText` default "Buy Now", `buttonType` default "single" (2026-03-26) |
 | `block/block-v2.json` | WOOPTP-152 | V2 block schema for deprecated handler |
 
 ---
