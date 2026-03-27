@@ -85,12 +85,12 @@ class PayPal_Admin_Page {
 	 */
 	public static function handle_actions() {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce is verified below.
-		if ( ! isset( $_GET['page'] ) || self::PAGE_SLUG !== $_GET['page'] ) {
+		if ( ! isset( $_GET['page'] ) || self::PAGE_SLUG !== sanitize_text_field( wp_unslash( $_GET['page'] ) ) ) {
 			return;
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce is verified below.
-		if ( ! isset( $_GET['action'] ) || 'delete' !== $_GET['action'] ) {
+		if ( ! isset( $_GET['action'] ) || 'delete' !== sanitize_text_field( wp_unslash( $_GET['action'] ) ) ) {
 			return;
 		}
 
@@ -240,7 +240,7 @@ class PayPal_Admin_Page {
 						navigator.clipboard.writeText(url).then(function() {
 							var original = e.target.textContent;
 							e.target.textContent = ' . wp_json_encode( __( 'Copied!', 'jetpack-paypal-payments' ), JSON_HEX_TAG | JSON_HEX_AMP ) . ';
-							if (typeof wp !== "undefined" && wp.a11y) { wp.a11y.speak("Copied to clipboard"); }
+							if (typeof wp !== "undefined" && wp.a11y) { wp.a11y.speak(' . wp_json_encode( __( 'Copied to clipboard', 'jetpack-paypal-payments' ), JSON_HEX_TAG | JSON_HEX_AMP ) . '); }
 							setTimeout(function() { e.target.textContent = original; }, 2000);
 						});
 					}
@@ -334,7 +334,7 @@ class PayPal_Admin_Page {
 
 		// Detail view (WOOPTP-167).
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only view parameter.
-		if ( isset( $_GET['action'] ) && 'view' === $_GET['action'] && ! empty( $_GET['resource_id'] ) ) {
+		if ( isset( $_GET['action'] ) && 'view' === sanitize_text_field( wp_unslash( $_GET['action'] ) ) && ! empty( $_GET['resource_id'] ) ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			self::render_detail_view( sanitize_text_field( wp_unslash( $_GET['resource_id'] ) ) );
 			echo '</div>';
@@ -501,13 +501,6 @@ class PayPal_Admin_Page {
 
 		if ( ! empty( $line_item['product_id'] ) ) {
 			self::render_detail_row( __( 'Product ID', 'jetpack-paypal-payments' ), $line_item['product_id'] );
-		}
-
-		if ( ! empty( $line_item['image_url'] ) ) {
-			self::render_detail_row_html(
-				__( 'Image', 'jetpack-paypal-payments' ),
-				sprintf( '<img src="%s" alt="%s" style="max-width:200px;height:auto;" />', esc_url( $line_item['image_url'] ), esc_attr( $line_item['name'] ?? '' ) )
-			);
 		}
 
 		self::render_detail_row( __( 'Type', 'jetpack-paypal-payments' ), $resource['type'] ?? '' );

@@ -97,11 +97,11 @@ class PayPal_Email_Sender {
 		}
 
 		// Rate limiting: max 10 sends per 60 seconds per user.
-		$user_id        = get_current_user_id();
-		$rate_key       = 'paypal_email_rate_' . $user_id;
-		$rate_count     = (int) get_transient( $rate_key );
-		$rate_limit     = 10;
-		$rate_window    = 60; // seconds.
+		$user_id     = get_current_user_id();
+		$rate_key    = 'paypal_email_rate_' . $user_id;
+		$rate_count  = (int) get_transient( $rate_key );
+		$rate_limit  = 10;
+		$rate_window = 60; // seconds.
 
 		if ( $rate_count >= $rate_limit ) {
 			wp_send_json_error(
