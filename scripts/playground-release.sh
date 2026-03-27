@@ -96,7 +96,7 @@ echo "  blueprint updated ✓"
 # ---------------------------------------------------------------
 echo "--- Committing ---"
 cd "$REPO_ROOT"
-git add compat-plugin/ playground-blueprint.json "paypal-payment-buttons-v${VERSION}.zip"
+git add compat-plugin/ playground-blueprint.json
 git commit -m "chore(playground): release v${VERSION}
 
 Synced dist from Jetpack build, updated plugin header, and created
