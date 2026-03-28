@@ -39,7 +39,7 @@ echo ""
 # PHP source files → src/paypal-payment-buttons/
 # ---------------------------------------------------------------
 echo "--- PHP source files ---"
-for f in class-paypal-oauth.php class-paypal-rest-controller.php class-paypal-api-client.php class-paypal-attribute-mapper.php class-paypal-payment-buttons.php class-paypal-admin-page.php class-paypal-payment-links-list-table.php class-paypal-email-sender.php; do
+for f in class-paypal-oauth.php class-paypal-rest-controller.php class-paypal-api-client.php class-paypal-attribute-mapper.php class-paypal-payment-buttons.php class-paypal-admin-page.php class-paypal-payment-links-list-table.php class-paypal-email-sender.php class-paypal-partner-onboarding.php; do
 	cp -v "$CONSOLIDATED/php/$f" "$BLOCK_SRC/$f"
 done
 
