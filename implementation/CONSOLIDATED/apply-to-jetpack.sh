@@ -48,7 +48,7 @@ done
 # ---------------------------------------------------------------
 echo ""
 echo "--- JS source files ---"
-for f in edit.js save.js deprecated.js index.js paypal-button-preview.js validation.js variant-builder.js icon.js qr-code.js currency-symbols.js editor.js shipping-panel.js; do
+for f in edit.js save.js deprecated.js index.js paypal-button-preview.js validation.js variant-builder.js icon.js qr-code.js currency-symbols.js editor.js shipping-panel.js paypal-logo.js; do
 	cp -v "$CONSOLIDATED/js/$f" "$BLOCK_SRC/$f"
 done
 
