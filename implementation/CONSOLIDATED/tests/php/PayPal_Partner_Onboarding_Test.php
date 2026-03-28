@@ -26,7 +26,6 @@ class PayPal_Partner_Onboarding_Test extends TestCase {
 		parent::tearDown();
 
 		delete_transient( PayPal_Partner_Onboarding::SELLER_NONCE_TRANSIENT_KEY );
-		delete_option( PayPal_Partner_Onboarding::PARTNER_ID_OPTION_KEY );
 		delete_option( PayPal_Partner_Onboarding::MERCHANT_ID_OPTION_KEY );
 		delete_option( PayPal_Partner_Onboarding::ONBOARDING_METHOD_OPTION_KEY );
 		delete_option( PayPal_OAuth::CREDENTIALS_OPTION_KEY );
@@ -34,13 +33,32 @@ class PayPal_Partner_Onboarding_Test extends TestCase {
 	}
 
 	/**
-	 * Test partner ID storage and retrieval.
+	 * Test partner ID returns production constant by default.
 	 */
-	public function test_partner_id_storage() {
-		$this->assertEmpty( PayPal_Partner_Onboarding::get_partner_id() );
+	public function test_partner_id_returns_production_constant() {
+		$this->assertEquals(
+			PayPal_Partner_Onboarding::AUTOMATTIC_PARTNER_ID,
+			PayPal_Partner_Onboarding::get_partner_id()
+		);
+	}
 
-		PayPal_Partner_Onboarding::set_partner_id( 'TEST_PARTNER_123' );
-		$this->assertEquals( 'TEST_PARTNER_123', PayPal_Partner_Onboarding::get_partner_id() );
+	/**
+	 * Test partner ID returns sandbox constant when in sandbox mode.
+	 */
+	public function test_partner_id_returns_sandbox_constant() {
+		PayPal_OAuth::set_environment( 'sandbox' );
+		$this->assertEquals(
+			PayPal_Partner_Onboarding::AUTOMATTIC_SANDBOX_PARTNER_ID,
+			PayPal_Partner_Onboarding::get_partner_id()
+		);
+	}
+
+	/**
+	 * Test partner ID constants are non-empty.
+	 */
+	public function test_partner_id_constants_are_defined() {
+		$this->assertNotEmpty( PayPal_Partner_Onboarding::AUTOMATTIC_PARTNER_ID );
+		$this->assertNotEmpty( PayPal_Partner_Onboarding::AUTOMATTIC_SANDBOX_PARTNER_ID );
 	}
 
 	/**
@@ -51,16 +69,16 @@ class PayPal_Partner_Onboarding_Test extends TestCase {
 	}
 
 	/**
-	 * Test generate_signup_link fails without partner ID.
+	 * Test generate_signup_link rejects HTTP return URLs in production.
 	 */
-	public function test_generate_signup_link_requires_partner_id() {
+	public function test_generate_signup_link_rejects_insecure_url() {
 		$result = PayPal_Partner_Onboarding::generate_signup_link(
-			'https://example.com/return',
-			'sandbox'
+			'http://example.com/return',
+			'production'
 		);
 
 		$this->assertInstanceOf( \WP_Error::class, $result );
-		$this->assertEquals( 'paypal_no_partner_id', $result->get_error_code() );
+		$this->assertEquals( 'paypal_onboarding_insecure_url', $result->get_error_code() );
 	}
 
 	/**
@@ -103,14 +121,22 @@ class PayPal_Partner_Onboarding_Test extends TestCase {
 	}
 
 	/**
-	 * Test cleanup does not remove partner ID (site-level config).
+	 * Test cleanup does not affect partner ID (now a constant, not stored in options).
 	 */
 	public function test_cleanup_preserves_partner_id() {
-		PayPal_Partner_Onboarding::set_partner_id( 'TEST_PARTNER_123' );
+		$partner_id_before = PayPal_Partner_Onboarding::get_partner_id();
 
 		PayPal_Partner_Onboarding::cleanup();
 
-		$this->assertEquals( 'TEST_PARTNER_123', PayPal_Partner_Onboarding::get_partner_id() );
+		$this->assertEquals( $partner_id_before, PayPal_Partner_Onboarding::get_partner_id() );
+	}
+
+	/**
+	 * Test WPCOM signup link endpoint constant is defined.
+	 */
+	public function test_wpcom_endpoint_defined() {
+		$this->assertNotEmpty( PayPal_Partner_Onboarding::WPCOM_SIGNUP_LINK_ENDPOINT );
+		$this->assertStringContainsString( 'paypal/onboarding/signup-link', PayPal_Partner_Onboarding::WPCOM_SIGNUP_LINK_ENDPOINT );
 	}
 
 	/**
