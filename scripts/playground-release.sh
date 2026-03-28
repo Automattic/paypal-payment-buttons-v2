@@ -61,7 +61,8 @@ echo "  dist synced ✓"
 echo "--- Syncing PHP source ---"
 for f in class-paypal-payment-buttons.php class-paypal-oauth.php class-paypal-api-client.php \
          class-paypal-attribute-mapper.php class-paypal-rest-controller.php class-paypal-admin-page.php \
-         class-paypal-email-sender.php class-paypal-payment-links-list-table.php; do
+         class-paypal-email-sender.php class-paypal-payment-links-list-table.php \
+         class-paypal-partner-onboarding.php; do
 	[ -f "$JETPACK_SRC/$f" ] && cp "$JETPACK_SRC/$f" "$COMPAT/src/paypal-payment-buttons/$f"
 done
 cp "$JETPACK_SRC/block.json" "$COMPAT/src/paypal-payment-buttons/block.json"
@@ -124,10 +125,12 @@ gh release create "$TAG" "$ZIP_PATH" \
 	--notes "Playground-ready release for [WordPress Playground](https://playground.wordpress.net/).
 
 ## What's new
-- Theme-native checkout button (\`wp-element-button\`) — inherits active theme styles
-- Default button text: \"Buy Now\"
-- Removed PayPal-branded gold button and stacked layout
-- \"Powered by PayPal\" attribution preserved
+- Security: postMessage origin validation for Partner Referrals (WOOPTP-271)
+- Fix: variants, taxes, customer notes, and adjustable quantity now pass through to PayPal (WOOPTP-272/276)
+- Security: email rate limiter fix + 50/day cap (WOOPTP-273)
+- Security: OAuth token refresh mutex (WOOPTP-274)
+- Security: seller nonce auto-expires after 30 minutes (WOOPTP-275)
+- Performance: register_hooks() idempotency guard (WOOPTP-277)
 
 ## Try it
 [Open in WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/paypal-payment-buttons-v2/trunk/playground-blueprint.json)"
