@@ -325,21 +325,59 @@ class PayPal_OAuth {
 			$expires_at = get_option( self::TOKEN_EXPIRES_AT_OPTION_KEY, 0 );
 			if ( $expires_at > 0 && time() >= $expires_at ) {
 				self::clear_cached_token();
-				return self::request_access_token();
+				return self::request_access_token_with_lock();
 			}
 
 			$cached_token = self::decrypt( $cached_encrypted );
 			if ( false === $cached_token ) {
 				// Decryption failed — request a fresh token.
 				self::clear_cached_token();
-				return self::request_access_token();
+				return self::request_access_token_with_lock();
 			}
 
 			return $cached_token;
 		}
 
 		// No valid cached token — request a new one.
-		return self::request_access_token();
+		return self::request_access_token_with_lock();
+	}
+
+	/**
+	 * Request a new access token with a best-effort mutex to reduce concurrent refreshes.
+	 *
+	 * Uses wp_cache_add() which is atomic on persistent object caches (Redis, Memcached).
+	 * On sites without a persistent cache, this is per-request only — duplicate refreshes
+	 * may still occur, which is acceptable since the token endpoint is idempotent.
+	 *
+	 * @return string|\WP_Error The access token string, or WP_Error on failure.
+	 */
+	private static function request_access_token_with_lock() {
+		$lock_key     = 'paypal_token_refresh_lock';
+		$lock_timeout = 30; // seconds.
+
+		// wp_cache_add returns false if key already exists (atomic on persistent caches).
+		$acquired = wp_cache_add( $lock_key, true, '', $lock_timeout );
+
+		if ( ! $acquired ) {
+			// Another process is refreshing. Wait briefly for the new token.
+			for ( $i = 0; $i < 4; $i++ ) {
+				usleep( 250000 ); // 0.25 seconds, max 1 second total.
+				$cached_encrypted = get_transient( self::TOKEN_TRANSIENT_KEY );
+				if ( false !== $cached_encrypted && is_string( $cached_encrypted ) ) {
+					$token = self::decrypt( $cached_encrypted );
+					if ( false !== $token ) {
+						return $token;
+					}
+				}
+			}
+			// Fallthrough: other process may have failed. Proceed with our own request.
+		}
+
+		$result = self::request_access_token();
+
+		wp_cache_delete( $lock_key );
+
+		return $result;
 	}
 
 	/**
