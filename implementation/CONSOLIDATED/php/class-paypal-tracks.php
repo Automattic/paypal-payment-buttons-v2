@@ -7,7 +7,12 @@
  * where there is typically no authenticated user.
  *
  * Gracefully no-ops when Jetpack Tracking is unavailable (standalone mode).
- * All events use the `paypal_` prefix and must carry non-PII properties only.
+ *
+ * Event naming: server-side calls pass bare names like `paypal_button_created`;
+ * Tracking auto-prefixes with the product name (default `jetpack`) to produce
+ * `jetpack_paypal_button_created`. Client-side pushes and inline renders must
+ * pass the fully-qualified `jetpack_paypal_*` name since they bypass the
+ * prefix logic. All properties must be non-PII.
  *
  * @package automattic/jetpack-paypal-payments
  * @since 0.13.0
@@ -38,6 +43,10 @@ class PayPal_Tracks {
 	/**
 	 * Get (or lazily build) the shared Tracking instance.
 	 *
+	 * Uses the default `jetpack` product name so events are auto-prefixed
+	 * with `jetpack_`, matching the prefix convention enforced by the
+	 * `@automattic/jetpack-analytics` JS package.
+	 *
 	 * @return \Automattic\Jetpack\Tracking|null
 	 */
 	private static function get_tracking() {
@@ -45,7 +54,7 @@ class PayPal_Tracks {
 			return null;
 		}
 		if ( null === self::$tracking ) {
-			self::$tracking = new \Automattic\Jetpack\Tracking( 'jetpack-paypal-payments' );
+			self::$tracking = new \Automattic\Jetpack\Tracking();
 		}
 		return self::$tracking;
 	}
@@ -53,10 +62,13 @@ class PayPal_Tracks {
 	/**
 	 * Record a server-side Tracks event.
 	 *
-	 * Safe no-op when Jetpack Tracking is unavailable.
-	 * Uses the currently logged-in user's context.
+	 * Pass the bare event name (e.g. `paypal_button_created`). The Tracking
+	 * class will auto-prefix with `jetpack_` to produce the final event
+	 * name `jetpack_paypal_button_created`.
 	 *
-	 * @param string $event_name Event name (must be prefixed with `paypal_`).
+	 * Safe no-op when Jetpack Tracking is unavailable.
+	 *
+	 * @param string $event_name Bare event name (will be prefixed with `jetpack_`).
 	 * @param array  $properties Optional non-PII properties.
 	 */
 	public static function record_event( $event_name, $properties = array() ) {
@@ -71,15 +83,37 @@ class PayPal_Tracks {
 	}
 
 	/**
+	 * Register and enqueue the Jetpack Tracks client scripts (stats.wp.com/w.js
+	 * and the tracks-callables helper). Without this, `window._tkq` queues up
+	 * events but never flushes them.
+	 *
+	 * Safe no-op when Jetpack Tracking is unavailable.
+	 *
+	 * Callers should invoke this from their own `enqueue_*_scripts` hooks
+	 * on screens where Tracks events will be fired (block editor, admin
+	 * page, or the frontend when a block is rendered).
+	 */
+	public static function enqueue_scripts() {
+		if ( ! self::is_available() ) {
+			return;
+		}
+		// Idempotent — safe to call even if Jetpack has already registered the script.
+		\Automattic\Jetpack\Tracking::register_tracks_functions_scripts( true );
+	}
+
+	/**
 	 * Build an inline <script> tag that pushes a single event to
 	 * Jetpack Tracks on the frontend. Intended for render-time events
 	 * where the viewer is typically unauthenticated (and therefore
 	 * record_user_event would drop the event).
 	 *
+	 * This path bypasses the Tracking product-prefix logic — pass the
+	 * fully-qualified event name including the `jetpack_` prefix.
+	 *
 	 * Returns an empty string when Jetpack Tracking is unavailable so
 	 * no-op standalone mode does not emit dead script tags.
 	 *
-	 * @param string $event_name Event name.
+	 * @param string $event_name Fully-qualified event name (e.g. `jetpack_paypal_button_rendered`).
 	 * @param array  $properties Optional non-PII properties.
 	 * @return string HTML <script> tag, or empty string when unavailable.
 	 */

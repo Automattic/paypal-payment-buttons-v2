@@ -150,6 +150,9 @@ class PayPal_Admin_Page {
 			return;
 		}
 
+		// Bootstrap Jetpack Tracks so the page-viewed/detail-viewed events flush.
+		PayPal_Tracks::enqueue_scripts();
+
 		wp_add_inline_style(
 			'wp-admin',
 			'

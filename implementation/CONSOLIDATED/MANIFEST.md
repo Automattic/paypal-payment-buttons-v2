@@ -65,7 +65,7 @@ Each file is the canonical final version: the highest-numbered ticket that last 
 | `tests/php/PayPal_Attribute_Mapper_Test.php` | WOOPTP-153 | 30 | Validation, bidirectional mapping, merge, resource ID format |
 | `tests/php/PayPal_REST_Controller_Test.php` | WOOPTP-153 | 17 | Permission checks, input validation, error normalization |
 | `tests/php/PayPal_API_Client_Retry_Test.php` | WOOPTP-153 | 16 | Retry logic, backoff, 403 auth retry, timeout detection |
-| `tests/php/PayPal_Tracks_Test.php` | WOOPTP-194 | 4 | Graceful no-op guarantee; empty event-name guard |
+| `tests/php/PayPal_Tracks_Test.php` | WOOPTP-194 | 5 | Graceful no-op guarantee for record_event + enqueue_scripts; empty event-name guard |
 
 ---
 
@@ -74,7 +74,7 @@ Each file is the canonical final version: the highest-numbered ticket that last 
 | File | Source Ticket | Tests | Covers |
 |------|--------------|-------|--------|
 | `tests/js/validation.test.js` | WOOPTP-153 | 16 | `validatePrice`, `validateProductName`, `validateDescription`, error mapping |
-| `tests/js/tracks.test.js` | WOOPTP-194 | 5 | `recordEvent` push semantics, empty-name guard, error swallowing |
+| `tests/js/tracks.test.js` | WOOPTP-194 | 6 | `recordEvent` push semantics, `jetpack_` prefix enforcement, error swallowing |
 | `tests/js/paypal-button-preview.test.js` | WOOPTP-153 | 11 | Product card rendering, currency formatting, layout variants |
 | `tests/js/save.test.js` | WOOPTP-153 | 6 | API-managed, legacy, stacked/single, empty fallback |
 | `tests/js/deprecated.test.js` | WOOPTP-153 | 8 | `isEligible` detection, `migrate` transformation, deprecated markup |

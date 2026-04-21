@@ -287,7 +287,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 			return;
 		}
 		wizardStartedRef.current = true;
-		recordEvent( 'paypal_wizard_started', {
+		recordEvent( 'jetpack_paypal_wizard_started', {
 			environment,
 			partner_referrals_available: partnerReferralsAvailable,
 		} );
@@ -296,7 +296,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 	// Fire `paypal_wizard_credentials_reached` when the user lands on the credentials step.
 	useEffect( () => {
 		if ( wizardStep === 'credentials' ) {
-			recordEvent( 'paypal_wizard_credentials_reached', { environment } );
+			recordEvent( 'jetpack_paypal_wizard_credentials_reached', { environment } );
 		}
 	}, [ wizardStep, environment ] );
 
@@ -350,7 +350,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 	const handleConnect = useCallback( () => {
 		setConnectError( null );
 		setIsConnecting( true );
-		recordEvent( 'paypal_connection_attempted', { method: 'manual', environment } );
+		recordEvent( 'jetpack_paypal_connection_attempted', { method: 'manual', environment } );
 
 		apiFetch( {
 			path: `${ API_BASE }/connect`,
@@ -367,13 +367,13 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 				setClientId( '' );
 				setClientSecret( '' );
 				setWizardStep( 'success' );
-				recordEvent( 'paypal_connection_succeeded', {
+				recordEvent( 'jetpack_paypal_connection_succeeded', {
 					method: 'manual',
 					environment: response.environment,
 				} );
 			} )
 			.catch( err => {
-				recordEvent( 'paypal_connection_failed', {
+				recordEvent( 'jetpack_paypal_connection_failed', {
 					method: 'manual',
 					environment,
 					error_code: err?.code || 'unknown',
@@ -400,12 +400,12 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 					setIsConnected( true );
 					setEnvironment( status.environment || environment );
 					setWizardStep( 'success' );
-					recordEvent( 'paypal_connection_succeeded', {
+					recordEvent( 'jetpack_paypal_connection_succeeded', {
 						method: 'partner_referrals',
 						environment: status.environment || environment,
 					} );
 				} else {
-					recordEvent( 'paypal_connection_failed', {
+					recordEvent( 'jetpack_paypal_connection_failed', {
 						method: 'partner_referrals',
 						environment,
 						error_code: 'not_payments_receivable',
@@ -419,7 +419,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 				}
 			} )
 			.catch( err => {
-				recordEvent( 'paypal_connection_failed', {
+				recordEvent( 'jetpack_paypal_connection_failed', {
 					method: 'partner_referrals',
 					environment,
 					error_code: err?.code || 'status_check_failed',
@@ -438,7 +438,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 	const handleConnectWithPayPal = useCallback( () => {
 		setConnectError( null );
 		setIsGeneratingSignupLink( true );
-		recordEvent( 'paypal_connection_attempted', { method: 'partner_referrals', environment } );
+		recordEvent( 'jetpack_paypal_connection_attempted', { method: 'partner_referrals', environment } );
 
 		const onboardingReturnUrl =
 			window.location.href.split( '?' )[ 0 ] + '?paypal_onboarding_return=1';
@@ -476,7 +476,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 			} )
 			.catch( err => {
 				setIsGeneratingSignupLink( false );
-				recordEvent( 'paypal_connection_failed', {
+				recordEvent( 'jetpack_paypal_connection_failed', {
 					method: 'partner_referrals',
 					environment,
 					error_code: err?.code || 'signup_link_failed',
@@ -516,13 +516,13 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 					.then( () => {
 						setIsConnected( true );
 						setWizardStep( 'success' );
-						recordEvent( 'paypal_connection_succeeded', {
+						recordEvent( 'jetpack_paypal_connection_succeeded', {
 							method: 'partner_referrals',
 							environment,
 						} );
 					} )
 					.catch( err => {
-						recordEvent( 'paypal_connection_failed', {
+						recordEvent( 'jetpack_paypal_connection_failed', {
 							method: 'partner_referrals',
 							environment,
 							error_code: err?.code || 'onboarding_complete_failed',
@@ -664,7 +664,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 					resourceId: response.id,
 					paymentLink: response.payment_link,
 				} );
-				recordEvent( 'paypal_button_created', {
+				recordEvent( 'jetpack_paypal_button_created', {
 					environment,
 					currency: currencyCode || 'USD',
 					has_variants: !! ( variantsEnabled && variants?.length ),
@@ -728,7 +728,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 				setAttributes( {
 					paymentLink: response.payment_link || paymentLink,
 				} );
-				recordEvent( 'paypal_button_updated', {
+				recordEvent( 'jetpack_paypal_button_updated', {
 					environment,
 					currency: currencyCode || 'USD',
 					has_variants: !! ( variantsEnabled && variants?.length ),
@@ -755,7 +755,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 								resourceId: response.id,
 								paymentLink: response.payment_link,
 							} );
-							recordEvent( 'paypal_button_recreated', {
+							recordEvent( 'jetpack_paypal_button_recreated', {
 								environment,
 								currency: currencyCode || 'USD',
 							} );
@@ -830,7 +830,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 					resourceId: undefined,
 					paymentLink: undefined,
 				} );
-				recordEvent( 'paypal_button_deleted', { environment } );
+				recordEvent( 'jetpack_paypal_button_deleted', { environment } );
 				setIsEditing( true );
 				setSuccessMessage( __( 'PayPal button deleted.', 'jetpack-paypal-payments' ) );
 			} )
@@ -842,7 +842,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 						resourceId: undefined,
 						paymentLink: undefined,
 					} );
-					recordEvent( 'paypal_button_deleted', { environment, already_gone: true } );
+					recordEvent( 'jetpack_paypal_button_deleted', { environment, already_gone: true } );
 					setIsEditing( true );
 					setSuccessMessage(
 						__( 'Button was already removed from PayPal.', 'jetpack-paypal-payments' )

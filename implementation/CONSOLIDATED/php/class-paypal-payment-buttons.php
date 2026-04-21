@@ -88,6 +88,11 @@ class PayPal_Payment_Buttons {
 				'plan_check'      => false,
 			)
 		);
+
+		// Enqueue the Jetpack Tracks client (stats.wp.com/w.js) whenever the
+		// block editor loads so our `window._tkq` pushes flush. Idempotent —
+		// Jetpack may have already registered the handle.
+		add_action( 'enqueue_block_editor_assets', array( PayPal_Tracks::class, 'enqueue_scripts' ) );
 	}
 
 	/**
@@ -115,9 +120,14 @@ class PayPal_Payment_Buttons {
 		// Emit a frontend Tracks event for each rendered button. Inline rather
 		// than server-side because most visitors are unauthenticated. Safe no-op
 		// when Jetpack Tracking is unavailable (standalone mode).
-		if ( is_string( $html ) && '' !== $html ) {
+		//
+		// The inline push bypasses Tracking's auto-prefix, so we pass the
+		// fully-qualified `jetpack_paypal_*` name. Enqueue stats.wp.com/w.js
+		// so the queued push actually flushes on anonymous page views.
+		if ( is_string( $html ) && '' !== $html && PayPal_Tracks::is_available() ) {
+			PayPal_Tracks::enqueue_scripts();
 			$tracks_script = PayPal_Tracks::get_inline_event_script(
-				'paypal_button_rendered',
+				'jetpack_paypal_button_rendered',
 				array(
 					'button_variant' => $api_managed ? 'api_managed' : 'legacy',
 					'currency'       => $api_managed ? ( $attributes['currencyCode'] ?? 'USD' ) : '',
