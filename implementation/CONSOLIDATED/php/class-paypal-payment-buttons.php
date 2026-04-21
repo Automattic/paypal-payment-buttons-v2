@@ -106,11 +106,29 @@ class PayPal_Payment_Buttons {
 
 		// ─── V2: API-managed button ───
 		if ( $api_managed ) {
-			return self::render_api_managed_button( $attributes );
+			$html = self::render_api_managed_button( $attributes );
+		} else {
+			// ─── V1: Legacy paste-code button ───
+			$html = self::render_legacy_button( $attributes );
 		}
 
-		// ─── V1: Legacy paste-code button ───
-		return self::render_legacy_button( $attributes );
+		// Emit a frontend Tracks event for each rendered button. Inline rather
+		// than server-side because most visitors are unauthenticated. Safe no-op
+		// when Jetpack Tracking is unavailable (standalone mode).
+		if ( is_string( $html ) && '' !== $html ) {
+			$tracks_script = PayPal_Tracks::get_inline_event_script(
+				'paypal_button_rendered',
+				array(
+					'button_variant' => $api_managed ? 'api_managed' : 'legacy',
+					'currency'       => $api_managed ? ( $attributes['currencyCode'] ?? 'USD' ) : '',
+				)
+			);
+			if ( '' !== $tracks_script ) {
+				$html .= $tracks_script;
+			}
+		}
+
+		return $html;
 	}
 
 	/**

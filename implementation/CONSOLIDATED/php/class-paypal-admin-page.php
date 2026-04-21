@@ -297,6 +297,15 @@ class PayPal_Admin_Page {
 			wp_die( esc_html__( 'You do not have permission to access this page.', 'jetpack-paypal-payments' ) );
 		}
 
+		$status = PayPal_OAuth::get_connection_status();
+		PayPal_Tracks::record_event(
+			'paypal_admin_page_viewed',
+			array(
+				'connected'   => ! empty( $status['connected'] ),
+				'environment' => $status['environment'] ?? 'production',
+			)
+		);
+
 		// Display admin notices from transient.
 		$notice = get_transient( 'paypal_admin_notice_' . get_current_user_id() );
 		if ( $notice ) {
@@ -383,6 +392,8 @@ class PayPal_Admin_Page {
 	 * @param string $resource_id The PayPal resource ID (PLB-...).
 	 */
 	private static function render_detail_view( $resource_id ) {
+		PayPal_Tracks::record_event( 'paypal_admin_detail_viewed' );
+
 		// Cache detail API responses for 300 seconds to reduce redundant API calls.
 		$cache_key = 'paypal_resource_' . sanitize_key( $resource_id );
 		$resource  = get_transient( $cache_key );

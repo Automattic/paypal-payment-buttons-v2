@@ -34,9 +34,10 @@ import {
 	ToolbarButton,
 	ToolbarGroup,
 } from '@wordpress/components';
-import { useState, useEffect, useCallback, useMemo } from '@wordpress/element';
+import { useState, useEffect, useCallback, useMemo, useRef } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 import PayPalButtonPreview from './paypal-button-preview';
+import { recordEvent } from './tracks';
 import {
 	validatePrice,
 	validateProductName,
@@ -279,6 +280,26 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 			} );
 	}, [] );
 
+	// Fire `paypal_wizard_started` once per editor mount when the wizard first becomes visible.
+	const wizardStartedRef = useRef( false );
+	useEffect( () => {
+		if ( wizardStartedRef.current || connectionLoading || isConnected ) {
+			return;
+		}
+		wizardStartedRef.current = true;
+		recordEvent( 'paypal_wizard_started', {
+			environment,
+			partner_referrals_available: partnerReferralsAvailable,
+		} );
+	}, [ connectionLoading, isConnected, environment, partnerReferralsAvailable ] );
+
+	// Fire `paypal_wizard_credentials_reached` when the user lands on the credentials step.
+	useEffect( () => {
+		if ( wizardStep === 'credentials' ) {
+			recordEvent( 'paypal_wizard_credentials_reached', { environment } );
+		}
+	}, [ wizardStep, environment ] );
+
 	/**
 	 * Handle Client ID paste — auto-trim whitespace.
 	 *
@@ -329,6 +350,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 	const handleConnect = useCallback( () => {
 		setConnectError( null );
 		setIsConnecting( true );
+		recordEvent( 'paypal_connection_attempted', { method: 'manual', environment } );
 
 		apiFetch( {
 			path: `${ API_BASE }/connect`,
@@ -345,8 +367,17 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 				setClientId( '' );
 				setClientSecret( '' );
 				setWizardStep( 'success' );
+				recordEvent( 'paypal_connection_succeeded', {
+					method: 'manual',
+					environment: response.environment,
+				} );
 			} )
 			.catch( err => {
+				recordEvent( 'paypal_connection_failed', {
+					method: 'manual',
+					environment,
+					error_code: err?.code || 'unknown',
+				} );
 				setConnectError( getUserFriendlyError( err ) );
 			} )
 			.finally( () => {
@@ -369,7 +400,16 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 					setIsConnected( true );
 					setEnvironment( status.environment || environment );
 					setWizardStep( 'success' );
+					recordEvent( 'paypal_connection_succeeded', {
+						method: 'partner_referrals',
+						environment: status.environment || environment,
+					} );
 				} else {
+					recordEvent( 'paypal_connection_failed', {
+						method: 'partner_referrals',
+						environment,
+						error_code: 'not_payments_receivable',
+					} );
 					setConnectError(
 						__(
 							'PayPal onboarding was not completed. Please try again.',
@@ -379,6 +419,11 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 				}
 			} )
 			.catch( err => {
+				recordEvent( 'paypal_connection_failed', {
+					method: 'partner_referrals',
+					environment,
+					error_code: err?.code || 'status_check_failed',
+				} );
 				setConnectError( getUserFriendlyError( err ) );
 			} )
 			.finally( () => {
@@ -393,6 +438,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 	const handleConnectWithPayPal = useCallback( () => {
 		setConnectError( null );
 		setIsGeneratingSignupLink( true );
+		recordEvent( 'paypal_connection_attempted', { method: 'partner_referrals', environment } );
 
 		const onboardingReturnUrl =
 			window.location.href.split( '?' )[ 0 ] + '?paypal_onboarding_return=1';
@@ -430,6 +476,11 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 			} )
 			.catch( err => {
 				setIsGeneratingSignupLink( false );
+				recordEvent( 'paypal_connection_failed', {
+					method: 'partner_referrals',
+					environment,
+					error_code: err?.code || 'signup_link_failed',
+				} );
 				setConnectError( getUserFriendlyError( err ) );
 			} );
 	}, [ environment, checkOnboardingStatus ] );
@@ -465,8 +516,17 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 					.then( () => {
 						setIsConnected( true );
 						setWizardStep( 'success' );
+						recordEvent( 'paypal_connection_succeeded', {
+							method: 'partner_referrals',
+							environment,
+						} );
 					} )
 					.catch( err => {
+						recordEvent( 'paypal_connection_failed', {
+							method: 'partner_referrals',
+							environment,
+							error_code: err?.code || 'onboarding_complete_failed',
+						} );
 						setConnectError( getUserFriendlyError( err ) );
 					} );
 			}
@@ -604,6 +664,12 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 					resourceId: response.id,
 					paymentLink: response.payment_link,
 				} );
+				recordEvent( 'paypal_button_created', {
+					environment,
+					currency: currencyCode || 'USD',
+					has_variants: !! ( variantsEnabled && variants?.length ),
+					has_image: !! imageUrl,
+				} );
 				setSuccessMessage(
 					__( 'PayPal button and payment link created successfully!', 'jetpack-paypal-payments' )
 				);
@@ -616,7 +682,16 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 			.finally( () => {
 				setIsCreating( false );
 			} );
-	}, [ buildRequestData, setAttributes, isFormValid ] );
+	}, [
+		buildRequestData,
+		setAttributes,
+		isFormValid,
+		environment,
+		currencyCode,
+		variantsEnabled,
+		variants,
+		imageUrl,
+	] );
 
 	/**
 	 * Update an existing PayPal payment button via the API.
@@ -653,6 +728,12 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 				setAttributes( {
 					paymentLink: response.payment_link || paymentLink,
 				} );
+				recordEvent( 'paypal_button_updated', {
+					environment,
+					currency: currencyCode || 'USD',
+					has_variants: !! ( variantsEnabled && variants?.length ),
+					has_image: !! imageUrl,
+				} );
 				setSuccessMessage( __( 'PayPal button updated successfully!', 'jetpack-paypal-payments' ) );
 				setIsEditing( false );
 				setTouchedFields( {} );
@@ -673,6 +754,10 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 								isApiManaged: true,
 								resourceId: response.id,
 								paymentLink: response.payment_link,
+							} );
+							recordEvent( 'paypal_button_recreated', {
+								environment,
+								currency: currencyCode || 'USD',
 							} );
 							setSuccessMessage(
 								__(
@@ -699,7 +784,18 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 					setIsCreating( false );
 				}
 			} );
-	}, [ resourceId, buildRequestData, paymentLink, setAttributes, isFormValid ] );
+	}, [
+		resourceId,
+		buildRequestData,
+		paymentLink,
+		setAttributes,
+		isFormValid,
+		environment,
+		currencyCode,
+		variantsEnabled,
+		variants,
+		imageUrl,
+	] );
 
 	/**
 	 * Delete the PayPal payment button via the API with confirmation.
@@ -734,6 +830,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 					resourceId: undefined,
 					paymentLink: undefined,
 				} );
+				recordEvent( 'paypal_button_deleted', { environment } );
 				setIsEditing( true );
 				setSuccessMessage( __( 'PayPal button deleted.', 'jetpack-paypal-payments' ) );
 			} )
@@ -745,6 +842,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 						resourceId: undefined,
 						paymentLink: undefined,
 					} );
+					recordEvent( 'paypal_button_deleted', { environment, already_gone: true } );
 					setIsEditing( true );
 					setSuccessMessage(
 						__( 'Button was already removed from PayPal.', 'jetpack-paypal-payments' )
@@ -756,7 +854,7 @@ export default function PayPalPaymentButtonsEdit( { attributes, setAttributes } 
 			.finally( () => {
 				setIsCreating( false );
 			} );
-	}, [ resourceId, setAttributes ] );
+	}, [ resourceId, setAttributes, environment ] );
 
 	/**
 	 * Whether the block has a created button to preview.

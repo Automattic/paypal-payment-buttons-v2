@@ -210,6 +210,14 @@ class PayPal_Email_Sender {
 			);
 		}
 
+		PayPal_Tracks::record_event(
+			'paypal_email_sent',
+			array(
+				'currency'    => (string) $currency,
+				'has_message' => ! empty( $message ),
+			)
+		);
+
 		return true;
 	}
 
