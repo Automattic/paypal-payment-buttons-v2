@@ -6,6 +6,10 @@
  * API (v2). Generates signup links, exchanges auth codes for credentials,
  * and verifies merchant integration status.
  *
+ * Signup link generation routes through Jetpack.com (WPCOM) when the Jetpack
+ * connection is available, keeping Automattic's platform credentials server-side.
+ * Falls back to direct PayPal API calls when running standalone (e.g. local dev).
+ *
  * @package automattic/jetpack-paypal-payments
  * @since 0.9.0
  * @see https://developer.paypal.com/docs/multiparty/seller-onboarding/build-onboarding/
@@ -85,7 +89,9 @@ class PayPal_Partner_Onboarding {
 	/**
 	 * Option key for storing the partner merchant ID.
 	 *
-	 * @deprecated Use AUTOMATTIC_PARTNER_ID / AUTOMATTIC_SANDBOX_PARTNER_ID constants instead.
+	 * Used as an override when the hardcoded constants are placeholders
+	 * (e.g. local development with sandbox credentials).
+	 *
 	 * @var string
 	 */
 	const PARTNER_ID_OPTION_KEY = 'jetpack_paypal_payment_buttons_partner_id';
@@ -144,32 +150,54 @@ class PayPal_Partner_Onboarding {
 	}
 
 	/**
+	 * Check whether the Jetpack connection is available for WPCOM proxy.
+	 *
+	 * @return bool True if the WPCOM proxy can be used.
+	 */
+	private static function has_wpcom_connection() {
+		return class_exists( '\Automattic\Jetpack\Connection\Client' )
+			&& method_exists( '\Automattic\Jetpack\Connection\Client', 'wpcom_json_api_request_as_blog' );
+	}
+
+	/**
 	 * Get the partner merchant ID for the current environment.
 	 *
-	 * Returns the hardcoded Automattic partner ID constant — no database lookup needed.
-	 * The partner ID is public (visible in PayPal's signup URL) and will not change
-	 * unless Automattic creates a new PayPal platform app.
+	 * Priority:
+	 * 1. wp_options override (for local dev / testing with real sandbox IDs)
+	 * 2. Hardcoded constants (production / sandbox)
 	 *
 	 * @return string The partner merchant ID.
 	 */
 	public static function get_partner_id() {
-		return 'production' === PayPal_OAuth::get_environment()
+		// Allow wp_options override for development and testing.
+		$override = get_option( self::PARTNER_ID_OPTION_KEY, '' );
+		if ( ! empty( $override ) ) {
+			return $override;
+		}
+
+		$constant = 'production' === PayPal_OAuth::get_environment()
 			? self::AUTOMATTIC_PARTNER_ID
 			: self::AUTOMATTIC_SANDBOX_PARTNER_ID;
+
+		// Don't return the placeholder.
+		if ( 'XXXXXXXXXX' === $constant ) {
+			return '';
+		}
+
+		return $constant;
 	}
 
 	/**
-	 * Set the partner merchant ID.
+	 * Set the partner merchant ID override.
 	 *
-	 * @deprecated Partner ID is now a hardcoded constant. This method is retained
-	 *             for backwards compatibility but has no effect.
+	 * Useful for local development and testing with sandbox credentials
+	 * when the hardcoded constants are placeholders.
 	 *
 	 * @param string $partner_id The Automattic partner merchant ID.
-	 * @return bool Always returns true.
+	 * @return bool True on success.
 	 */
 	public static function set_partner_id( $partner_id ) {
-		_deprecated_function( __METHOD__, '0.10.0', 'Use PayPal_Partner_Onboarding::AUTOMATTIC_PARTNER_ID constant' );
-		return true;
+		return update_option( self::PARTNER_ID_OPTION_KEY, sanitize_text_field( $partner_id ), false );
 	}
 
 	/**
@@ -184,9 +212,9 @@ class PayPal_Partner_Onboarding {
 	/**
 	 * Generate a Partner Referrals signup link for the merchant.
 	 *
-	 * Proxies the request through Jetpack.com (WPCOM), which holds the platform
-	 * credentials and calls PayPal's Partner Referrals API server-side. Returns
-	 * the action_url for the PayPal mini-browser lightbox.
+	 * Routes through Jetpack.com (WPCOM) when the Jetpack connection is available,
+	 * keeping Automattic's platform credentials server-side. Falls back to direct
+	 * PayPal API calls when running standalone (local dev, non-Jetpack sites).
 	 *
 	 * @param string $return_url  The URL PayPal redirects to after onboarding.
 	 * @param string $environment 'sandbox' or 'production'.
@@ -245,8 +273,27 @@ class PayPal_Partner_Onboarding {
 			),
 		);
 
-		// Proxy through WPCOM — Jetpack.com holds the platform credentials and
-		// calls PayPal's Partner Referrals API on our behalf.
+		// Route through WPCOM proxy when Jetpack connection is available.
+		if ( self::has_wpcom_connection() ) {
+			return self::generate_signup_link_via_wpcom( $request_body, $environment, $tracking_id );
+		}
+
+		// Fall back to direct PayPal API call (local dev / standalone).
+		return self::generate_signup_link_direct( $request_body, $environment, $tracking_id );
+	}
+
+	/**
+	 * Generate signup link via WPCOM proxy.
+	 *
+	 * Jetpack.com holds the platform credentials and calls PayPal's
+	 * Partner Referrals API on our behalf.
+	 *
+	 * @param array  $request_body The referral request body.
+	 * @param string $environment  'sandbox' or 'production'.
+	 * @param string $tracking_id  The tracking ID for this referral.
+	 * @return array|\WP_Error Array with 'action_url' and 'referral_id', or WP_Error.
+	 */
+	private static function generate_signup_link_via_wpcom( $request_body, $environment, $tracking_id ) {
 		$response = \Automattic\Jetpack\Connection\Client::wpcom_json_api_request_as_blog(
 			self::WPCOM_SIGNUP_LINK_ENDPOINT,
 			'2',
@@ -260,8 +307,8 @@ class PayPal_Partner_Onboarding {
 			),
 			wp_json_encode(
 				array(
-					'environment'  => $environment,
-					'referral'     => $request_body,
+					'environment' => $environment,
+					'referral'    => $request_body,
 				),
 				JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
 			)
@@ -295,6 +342,102 @@ class PayPal_Partner_Onboarding {
 		// WPCOM returns the parsed PayPal response with action_url and referral_id.
 		$action_url  = isset( $body['action_url'] ) ? $body['action_url'] : '';
 		$referral_id = isset( $body['referral_id'] ) ? $body['referral_id'] : '';
+
+		if ( empty( $action_url ) ) {
+			return new \WP_Error(
+				'paypal_referral_no_url',
+				__( 'PayPal returned a successful response but no onboarding URL was included.', 'jetpack-paypal-payments' )
+			);
+		}
+
+		return array(
+			'action_url'  => $action_url,
+			'referral_id' => $referral_id,
+			'tracking_id' => $tracking_id,
+		);
+	}
+
+	/**
+	 * Generate signup link via direct PayPal API call.
+	 *
+	 * Used when Jetpack connection is not available (local dev, standalone sites).
+	 * Requires partner credentials to be stored locally via PayPal_OAuth::store_credentials().
+	 *
+	 * @param array  $request_body The referral request body.
+	 * @param string $environment  'sandbox' or 'production'.
+	 * @param string $tracking_id  The tracking ID for this referral.
+	 * @return array|\WP_Error Array with 'action_url' and 'referral_id', or WP_Error.
+	 */
+	private static function generate_signup_link_direct( $request_body, $environment, $tracking_id ) {
+		$partner_id = self::get_partner_id();
+		if ( empty( $partner_id ) ) {
+			return new \WP_Error(
+				'paypal_no_partner_id',
+				__( 'PayPal partner merchant ID is not configured. Please contact support.', 'jetpack-paypal-payments' )
+			);
+		}
+
+		$base_url = 'production' === $environment
+			? PayPal_OAuth::PRODUCTION_BASE_URL
+			: PayPal_OAuth::SANDBOX_BASE_URL;
+
+		// Get a partner access token to call the Partner Referrals API.
+		$token = PayPal_OAuth::get_access_token();
+		if ( is_wp_error( $token ) ) {
+			return $token;
+		}
+
+		$response = wp_remote_post(
+			$base_url . self::REFERRALS_ENDPOINT,
+			array(
+				'timeout' => 30,
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $token,
+					'Content-Type'  => 'application/json',
+					'Accept'        => 'application/json',
+				),
+				'body'    => wp_json_encode( $request_body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ),
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return new \WP_Error(
+				'paypal_referral_request_failed',
+				sprintf(
+					/* translators: %s: error message */
+					__( 'Failed to create PayPal onboarding link: %s', 'jetpack-paypal-payments' ),
+					$response->get_error_message()
+				)
+			);
+		}
+
+		$status_code = wp_remote_retrieve_response_code( $response );
+		$body        = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( 201 !== $status_code && 200 !== $status_code ) {
+			return new \WP_Error(
+				'paypal_referral_failed',
+				__( 'Could not create a PayPal onboarding link. Please try again or use the manual credentials option.', 'jetpack-paypal-payments' ),
+				array( 'status' => $status_code )
+			);
+		}
+
+		// Extract the action_url from the links array.
+		$action_url  = '';
+		$referral_id = '';
+
+		if ( isset( $body['links'] ) && is_array( $body['links'] ) ) {
+			foreach ( $body['links'] as $link ) {
+				if ( 'action_url' === $link['rel'] ) {
+					$action_url = $link['href'];
+				}
+				if ( 'self' === $link['rel'] ) {
+					// Extract referral ID from the self URL.
+					$parts       = explode( '/', $link['href'] );
+					$referral_id = end( $parts );
+				}
+			}
+		}
 
 		if ( empty( $action_url ) ) {
 			return new \WP_Error(
