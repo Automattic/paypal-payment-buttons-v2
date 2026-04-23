@@ -273,3 +273,52 @@ $paypal-blue: #0070ba;
 noscript + .jetpack-paypal-button__qr-section {
 	display: none;
 }
+
+// ---------------------------------------------------------------
+// Dark theme / dark mode support
+//
+// Addresses Jarred's feedback (2026-03-27): the black
+// wp-element-button may be indistinguishable on dark backgrounds.
+// wp-element-button itself inherits theme colors, but surrounding
+// product text and UI elements use hardcoded light-mode colors.
+// ---------------------------------------------------------------
+
+@media (prefers-color-scheme: dark) {
+
+	// Only apply when the theme hasn't already set explicit colors
+	// via wp-element-button (i.e., for generic dark OS-level themes).
+	.jetpack-paypal-button__product-name,
+	.jetpack-paypal-button__variant-name {
+		color: #f0f0f0;
+	}
+
+	.jetpack-paypal-button__product-price {
+		color: #f0f0f0;
+	}
+
+	.jetpack-paypal-button__product-description,
+	.jetpack-paypal-button__attribution,
+	.jetpack-paypal-button__variant-price {
+		color: #a7aaad;
+	}
+
+	.jetpack-paypal-button__variant-option {
+		background: #2c3338;
+		color: #f0f0f0;
+	}
+
+	.jetpack-paypal-button__qr-toggle {
+		border-color: #50575e;
+		color: #a7aaad;
+
+		&:hover {
+			border-color: #a7aaad;
+		}
+	}
+
+	.jetpack-paypal-button__qr-link-input {
+		border-color: #50575e;
+		background: #2c3338;
+		color: #a7aaad;
+	}
+}
