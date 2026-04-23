@@ -192,12 +192,35 @@ class PayPal_Payment_Buttons {
 	}
 
 	/**
-	 * Render an API-managed PayPal payment button on the frontend.
+	 * Render an API-managed PayPal payment button on the frontend (block context).
+	 *
+	 * Wraps the shared render_button() output with block wrapper attributes.
 	 *
 	 * @param array $attributes The block attributes.
 	 * @return string|void The rendered button HTML.
 	 */
 	private static function render_api_managed_button( $attributes ) {
+		$html = self::render_button( $attributes );
+		if ( empty( $html ) ) {
+			return;
+		}
+
+		$wrapper_attributes = get_block_wrapper_attributes();
+		return sprintf( '<div %s>%s</div>', $wrapper_attributes, $html );
+	}
+
+	/**
+	 * Render a PayPal payment button.
+	 *
+	 * Standalone render method that does not depend on the block editor.
+	 * Used by the block renderer, shortcode, and any future integrations.
+	 *
+	 * @since 0.13.0
+	 *
+	 * @param array $attributes The button attributes.
+	 * @return string The rendered button HTML, or empty string on failure.
+	 */
+	public static function render_button( $attributes ) {
 		$resource_id         = $attributes['resourceId'] ?? '';
 		$payment_url         = $attributes['paymentLink'] ?? '';
 		$product_name        = $attributes['productName'] ?? '';
@@ -210,13 +233,13 @@ class PayPal_Payment_Buttons {
 		$show_qr_code        = $attributes['showQrCode'] ?? true;
 
 		if ( empty( $resource_id ) || empty( $payment_url ) ) {
-			return;
+			return '';
 		}
 
 		// Validate the payment URL is from a legitimate PayPal domain.
 		$sanitized_payment_url = self::sanitize_paypal_script_url( $payment_url );
 		if ( false === $sanitized_payment_url ) {
-			return;
+			return '';
 		}
 
 		self::register_hooks();
@@ -324,12 +347,10 @@ class PayPal_Payment_Buttons {
 				. '</div></div>';
 		}
 
-		$wrapper_attributes = get_block_wrapper_attributes();
-
 		return sprintf(
-			'<div %9$s>
+			'<div class="wp-block-jetpack-paypal-payment-buttons">
 	<div class="jetpack-paypal-button">
-		%10$s
+		%9$s
 		<div class="jetpack-paypal-button__product">
 			<div class="jetpack-paypal-button__product-info">
 				<span class="jetpack-paypal-button__product-name">%1$s</span>
@@ -341,8 +362,8 @@ class PayPal_Payment_Buttons {
 		<div class="jetpack-paypal-button__buttons">
 			<a href="%4$s" class="jetpack-paypal-button__checkout-link wp-element-button" target="_blank" rel="noopener noreferrer">
 				<span class="jetpack-paypal-button__button-text">%5$s</span>
-				%12$s
-				<span class="screen-reader-text">%11$s</span>
+				%11$s
+				<span class="screen-reader-text">%10$s</span>
 			</a>
 		</div>
 		<p class="jetpack-paypal-button__attribution">%6$s</p>
@@ -357,11 +378,37 @@ class PayPal_Payment_Buttons {
 			esc_html__( 'Powered by PayPal', 'jetpack-paypal-payments' ),
 			$variants_html,
 			$qr_html,
-			$wrapper_attributes,
 			$image_html,
 			esc_html__( 'PayPal (opens in a new tab)', 'jetpack-paypal-payments' ),
 			self::get_paypal_logo_svg()
 		);
+	}
+
+	/**
+	 * Enqueue frontend styles for non-block contexts (shortcodes, widgets).
+	 *
+	 * The block system auto-enqueues styles from block.json, but shortcodes
+	 * and other integrations need explicit enqueuing.
+	 *
+	 * @since 0.13.0
+	 * @return void
+	 */
+	public static function enqueue_frontend_styles() {
+		static $enqueued = false;
+		if ( $enqueued ) {
+			return;
+		}
+		$enqueued = true;
+
+		$style_path = PAYPAL_PAYMENT_BUTTONS_DIR . 'dist/paypal-payment-buttons/style.css';
+		if ( file_exists( $style_path ) ) {
+			wp_enqueue_style(
+				'jetpack-paypal-payment-buttons-style',
+				plugins_url( 'dist/paypal-payment-buttons/style.css', PAYPAL_PAYMENT_BUTTONS_ROOT_FILE ),
+				array(),
+				filemtime( $style_path )
+			);
+		}
 	}
 
 	/**

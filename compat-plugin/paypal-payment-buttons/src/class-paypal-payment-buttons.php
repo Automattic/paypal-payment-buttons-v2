@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use Automattic\Jetpack\Blocks;
 use Automattic\Jetpack\PaypalPayments\PayPal_Payment_Buttons as Jetpack_PayPal_Payment_Buttons;
+use Automattic\Jetpack\PaypalPayments\PayPal_Shortcode;
 
 /**
  * Class PayPal_Payment_Buttons
@@ -68,6 +69,9 @@ class PayPal_Payment_Buttons {
 
 		// Initialize PayPal API integration (REST routes for OAuth + button management).
 		Jetpack_PayPal_Payment_Buttons::init_api();
+
+		// Initialize shortcode for non-block-editor contexts.
+		PayPal_Shortcode::init();
 
 		// Initialize admin dashboard (Payment Links list page).
 		if ( is_admin() ) {
