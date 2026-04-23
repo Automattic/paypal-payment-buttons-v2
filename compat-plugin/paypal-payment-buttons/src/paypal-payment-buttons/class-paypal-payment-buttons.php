@@ -69,7 +69,8 @@ class PayPal_Payment_Buttons {
 			$sanitized_url .= $parsed_url['path'];
 		}
 		if ( isset( $parsed_url['query'] ) ) {
-			$sanitized_url .= '?' . $parsed_url['query'];
+			// If we have escaped ampersands in the query string, we need to unescape them.
+			$sanitized_url .= '?' . str_replace( '&amp;', '&', $parsed_url['query'] );
 		}
 
 		return $sanitized_url;

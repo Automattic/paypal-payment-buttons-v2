@@ -57,12 +57,13 @@ class Paypal_Payment_Buttons_Test extends TestCase {
 	 */
 	public static function valid_paypal_urls_provider() {
 		return array(
-			'paypal.com'                    => array( 'https://www.paypal.com/sdk/js' ),
-			'paypal.com subdomain'          => array( 'https://www.paypal.com/sdk/js?client-id=test' ),
-			'sandbox.paypal.com'            => array( 'https://www.sandbox.paypal.com/sdk/js' ),
-			'sandbox.paypal.com with query' => array( 'https://www.sandbox.paypal.com/sdk/js?client-id=test&currency=USD' ),
-			'www.paypal.com'                => array( 'https://www.paypal.com/webapps/xoplatform' ),
-			'www.sandbox.paypal.com'        => array( 'https://www.sandbox.paypal.com/webapps/xoplatform' ),
+			'paypal.com'                              => array( 'https://www.paypal.com/sdk/js' ),
+			'paypal.com subdomain'                    => array( 'https://www.paypal.com/sdk/js?client-id=test' ),
+			'paypal.com subdomain with escaped query' => array( 'https://www.paypal.com/sdk/js?client-id=test&amp;currency=USD' ),
+			'sandbox.paypal.com'                      => array( 'https://www.sandbox.paypal.com/sdk/js' ),
+			'sandbox.paypal.com with query'           => array( 'https://www.sandbox.paypal.com/sdk/js?client-id=test&currency=USD' ),
+			'www.paypal.com'                          => array( 'https://www.paypal.com/webapps/xoplatform' ),
+			'www.sandbox.paypal.com'                  => array( 'https://www.sandbox.paypal.com/webapps/xoplatform' ),
 		);
 	}
 
@@ -115,12 +116,12 @@ class Paypal_Payment_Buttons_Test extends TestCase {
 	 * Test that query parameters are preserved when sanitizing URLs.
 	 */
 	public function test_query_parameters_are_preserved() {
-		// Valid PayPal URL with query params
-		$valid_url = 'https://www.paypal.com/sdk/js?client-id=test&currency=USD&locale=en_US';
+		// Valid PayPal URL with query params (mix of raw and escaped ampersands)
+		$valid_url = 'https://www.paypal.com/sdk/js?client-id=test&currency=USD&locale=en_US&amp;foo=bar';
 		$result    = PayPal_Payment_Buttons::sanitize_paypal_script_url( $valid_url );
 
 		$result_parsed = wp_parse_url( $result );
-		$this->assertEquals( 'client-id=test&currency=USD&locale=en_US', $result_parsed['query'] );
+		$this->assertEquals( 'client-id=test&currency=USD&locale=en_US&foo=bar', $result_parsed['query'] );
 	}
 
 	/**
@@ -140,15 +141,15 @@ class Paypal_Payment_Buttons_Test extends TestCase {
 	 * Test that all URL components work together.
 	 */
 	public function test_all_url_components_together() {
-		// Valid PayPal URL with all components (fragment and port are stripped)
-		$valid_url = 'https://www.paypal.com:443/sdk/js?client-id=test&currency=USD#init';
+		// Valid PayPal URL with all components (fragment and port are stripped; escaped ampersand is unescaped)
+		$valid_url = 'https://www.paypal.com:443/sdk/js?client-id=test&currency=USD&amp;foo=bar#init';
 		$result    = PayPal_Payment_Buttons::sanitize_paypal_script_url( $valid_url );
 
 		$result_parsed = wp_parse_url( $result );
 		$this->assertEquals( 'www.paypal.com', $result_parsed['host'] );
 		$this->assertEquals( 'https', $result_parsed['scheme'] );
 		$this->assertEquals( '/sdk/js', $result_parsed['path'] );
-		$this->assertEquals( 'client-id=test&currency=USD', $result_parsed['query'] );
+		$this->assertEquals( 'client-id=test&currency=USD&foo=bar', $result_parsed['query'] );
 		$this->assertArrayNotHasKey( 'fragment', $result_parsed, 'Fragment should be stripped' );
 	}
 
