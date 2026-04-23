@@ -649,3 +649,71 @@
 	gap: 12px;
 	margin-top: 4px;
 }
+
+// ---------------------------------------------------------------
+// Dark theme support (editor)
+//
+// WordPress block themes apply .is-dark-theme on the editor body.
+// Addresses Jarred's feedback (2026-03-27) on dark mode visibility.
+// ---------------------------------------------------------------
+
+.is-dark-theme {
+
+	.jetpack-paypal-button-preview__product {
+		background: #2c3338;
+		border-color: #50575e;
+	}
+
+	.jetpack-paypal-button-preview__product-name {
+		color: #f0f0f0;
+	}
+
+	.jetpack-paypal-button-preview__product-price {
+		color: #f0f0f0;
+	}
+
+	.jetpack-paypal-button-preview__product-description {
+		color: #a7aaad;
+	}
+
+	.jetpack-paypal-button-preview__checkout-button {
+		background: #f0f0f0;
+		color: #1e1e1e;
+	}
+
+	.jetpack-paypal-button-preview__variant-badge {
+		background: #3c434a;
+		color: #a7aaad;
+	}
+
+	.jetpack-paypal-button-preview__link-ref {
+		border-color: #50575e;
+	}
+
+	.jetpack-paypal-button-preview__link-label {
+		color: #a7aaad;
+	}
+
+	.jetpack-paypal-payment-buttons__connect {
+		background: #2c3338;
+		border-color: #50575e;
+	}
+
+	.jetpack-paypal-payment-buttons__preview {
+		border-color: #50575e;
+	}
+
+	.jetpack-paypal-variants__heading,
+	.jetpack-paypal-wizard__subtitle,
+	.jetpack-paypal-payment-buttons__section-heading {
+		color: #f0f0f0;
+	}
+
+	.jetpack-paypal-variants__group,
+	.jetpack-paypal-variants__dimension,
+	.jetpack-paypal-payment-buttons__variants-section,
+	.jetpack-paypal-payment-buttons__checkout-options {
+		background: #2c3338;
+		border-color: #50575e;
+	}
+}

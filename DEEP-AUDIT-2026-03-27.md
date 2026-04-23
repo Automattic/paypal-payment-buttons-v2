@@ -212,22 +212,22 @@ Minor notes:
 
 Priority-ordered task list for implementation. Items are tagged by area and sequenced for safe implementation order.
 
-### P0 — Fix Before Ship (2 items)
+### P0 — Fix Before Ship (2 items) — ✅ ALL RESOLVED
 
-| # | ID | Area | Task | File(s) | Est. Complexity |
-|---|-----|------|------|---------|-----------------|
-| 1 | SEC-H1 | Security | Add `event.origin` validation to postMessage listener | `js/edit.js:432` | Small (2-line fix) |
-| 2 | TRACE-1 | Traceability | Fix `sanitize_line_items()` to pass through `variants`, `adjustable_quantity`, `customer_notes`, `taxes` (with sanitization) — OR remove the UI for these features if they are not yet supported by the PayPal API | `php/class-paypal-rest-controller.php:901-928` | Medium |
+| # | ID | Area | Task | File(s) | Status |
+|---|-----|------|------|---------|--------|
+| 1 | SEC-H1 | Security | Add `event.origin` validation to postMessage listener | `js/edit.js:447` | ✅ Fixed in `eb9953a` (2026-03-27) |
+| 2 | TRACE-1 | Traceability | Fix `sanitize_line_items()` to pass through `variants`, `adjustable_quantity`, `customer_notes`, `taxes` (with sanitization) | `php/class-paypal-rest-controller.php:966-1045` | ✅ Fixed in `eb9953a` (2026-03-27) |
 
-### P1 — Should Fix Before Ship (5 items)
+### P1 — Should Fix Before Ship (5 items) — ✅ ALL RESOLVED
 
-| # | ID | Area | Task | File(s) | Est. Complexity |
-|---|-----|------|------|---------|-----------------|
-| 3 | SEC-H2 | Security | Fix rate limiter: don't reset TTL on increment; add daily cap | `php/class-paypal-email-sender.php:114-119` | Small |
-| 4 | SEC-M1 | Security | Add transient-based mutex for OAuth token refresh | `php/class-paypal-oauth.php:319-436` | Medium |
-| 5 | SEC-M6 | Security | Use transient with 30-min TTL for seller nonce instead of permanent option | `php/class-paypal-partner-onboarding.php:174-180` | Small |
-| 6 | TRACE-2 | Traceability | Add `variants`, `adjustable_quantity`, `customer_notes`, `taxes` to REST schema `get_button_create_args()` | `php/class-paypal-rest-controller.php:777-855` | Medium |
-| 7 | OPT-P1 | Performance | Add static `$registered` guard to `register_hooks()` (like `enqueue_qr_script()` already has) | `php/class-paypal-payment-buttons.php:516` | Small |
+| # | ID | Area | Task | File(s) | Status |
+|---|-----|------|------|---------|--------|
+| 3 | SEC-H2 | Security | Fix rate limiter: use fixed-window instead of sliding window; add daily cap | `php/class-paypal-email-sender.php` | ✅ Fixed in `eb9953a` (2026-03-27) |
+| 4 | SEC-M1 | Security | Add transient-based mutex for OAuth token refresh | `php/class-paypal-oauth.php:354-381` | ✅ Fixed in `eb9953a` (2026-03-27) |
+| 5 | SEC-M6 | Security | Use transient with 30-min TTL for seller nonce instead of permanent option | `php/class-paypal-partner-onboarding.php:182` | ✅ Fixed in `eb9953a` (2026-03-27) |
+| 6 | TRACE-2 | Traceability | Add `variants`, `adjustable_quantity`, `customer_notes`, `taxes` to REST schema `get_button_create_args()` | `php/class-paypal-rest-controller.php:851-916` | ✅ Fixed in `eb9953a` (2026-03-27) |
+| 7 | OPT-P1 | Performance | Add static `$registered` guard to `register_hooks()` | `php/class-paypal-payment-buttons.php:519` | ✅ Fixed in `eb9953a` (2026-03-27) |
 
 ### P2 — Should Fix Post-Ship (10 items)
 
