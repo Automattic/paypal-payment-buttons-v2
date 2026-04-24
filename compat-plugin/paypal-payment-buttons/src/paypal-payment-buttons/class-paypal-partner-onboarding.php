@@ -82,6 +82,11 @@ class PayPal_Partner_Onboarding {
 	 * Automattic's PayPal sandbox partner merchant ID.
 	 *
 	 * @todo Replace placeholder with real Automattic PayPal sandbox merchant ID before merging.
+	 *
+	 * For sandbox testing before this constant is set, override via WP-CLI:
+	 *   wp option update jetpack_paypal_payment_buttons_partner_id YOUR_SANDBOX_MERCHANT_ID
+	 * get_partner_id() reads the option first and the constant is never reached.
+	 *
 	 * @var string
 	 */
 	const AUTOMATTIC_SANDBOX_PARTNER_ID = 'XXXXXXXXXX';
