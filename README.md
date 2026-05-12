@@ -1,8 +1,9 @@
 # PayPal Payment Buttons V2 — Implementation Repository
 
-Standalone plugin and implementation workspace for the PayPal Payment Buttons V2 API-driven flow. This repo contains the full plugin source (as a standalone `compat-plugin`) plus per-ticket implementation archives organized by Linear issue.
+Pre-launch implementation workspace for the PayPal Payment Buttons V2 API-driven flow. This repo contains the full plugin source (as a standalone `compat-plugin`) plus per-ticket implementation archives organized by Linear issue. The plugin has not yet shipped — target is WordCamp EU via Jetpack and as a standalone plugin.
 
-**Status:** Shipped as standalone plugin (v0.12.0); Jetpack monorepo integration pending
+**Status:** Pre-launch — pending Jetpack monorepo integration (WOOPTP-159)
+**Target:** WordCamp EU 2026
 **Package:** `automattic/jetpack-paypal-payments`
 **Block:** `jetpack/paypal-payment-buttons`
 
