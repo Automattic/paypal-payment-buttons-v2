@@ -14,13 +14,13 @@ This project spans two repositories. This document explains what each contains, 
 **Local path:** `/Users/andrewwikel/Local Sites/paypal-payment-buttons-v2/`
 **Default branch:** `trunk`
 
-**Purpose:** Project management, documentation, standalone plugin source, and implementation archives organized by Linear ticket. This is both the "war room" and the home of the deliverable compat-plugin.
+**Purpose:** Project management, documentation, and implementation archives organized by Linear ticket. This is the "war room" — it tracks the work and hosts the Playground demo harness, but is NOT the final integration target.
 
 **Contains:**
 
 | Directory/File | What It Is |
 |---|---|
-| `compat-plugin/` | **Standalone plugin source + built dist** — the deliverable artifact |
+| `compat-plugin/` | **Standalone demo/test harness** — uses Jetpack stub classes (`class-assets-stub.php`, `class-blocks-stub.php`) to run without the full monorepo; powers Playground demos and compat matrix testing. Not the Jetpack integration source. |
 | `compat-results/` | WP/PHP compatibility matrix test results |
 | `prd-paypal-payment-buttons-v2.md` | Product requirements document |
 | `PLUGINOMATTIC-INTEGRATION-PLAN.md` | Pluginomattic methodology application plan |
@@ -36,11 +36,12 @@ This project spans two repositories. This document explains what each contains, 
 | `scripts/playground-release.sh` | Script to build + upload Playground zip releases |
 
 **When to update this repo:**
-- All plugin code changes (features, bug fixes, new classes)
 - Documentation changes (docs drafts, checklist updates, plans)
 - Playground blueprint updates (new zip URLs for demos)
 - CONSOLIDATED folder refresh (snapshot of canonical files with MANIFEST)
 - Project tracking artifacts
+
+**Does NOT contain:** The actual Jetpack integration code. All live development for Jetpack shipping happens in the fork (see below).
 
 ---
 
@@ -91,10 +92,10 @@ projects/plugins/paypal-payment-buttons/
 
 ```
 1. Plan & track          → paypal-payment-buttons-v2 repo (this repo)
-2. Write & test code     → compat-plugin/paypal-payment-buttons/src/
-3. Run tests             → compat-test.sh for compat matrix; wp-env for local dev
-4. Commit & push         → PRs against trunk on this repo
-5. Build demo zip        → scripts/playground-release.sh
+2. Write & test code     → slash1andy/jetpack fork (paypal-payment-buttons-v2 branch)
+3. Run tests             → In the fork: pnpm run test:js + phpunit
+4. Commit & push         → Push to fork remote only
+5. Build demo zip        → scripts/playground-release.sh (builds from compat-plugin harness)
 6. Update Playground     → Update playground-blueprint.json to point to new zip
 7. Jetpack integration   → PR from slash1andy/jetpack fork → Automattic/jetpack trunk (WOOPTP-159)
 ```
@@ -118,7 +119,8 @@ Check `playground-blueprint.json` for the URL. The `scripts/playground-release.s
 
 | Question | Answer |
 |---|---|
-| Where is the latest plugin code? | **This repo:** `compat-plugin/paypal-payment-buttons/src/` |
+| Where is the latest plugin code? | **Fork:** `slash1andy/jetpack` branch `paypal-payment-buttons-v2` (`projects/packages/paypal-payments/`) |
+| Where is the demo/test harness? | **This repo:** `compat-plugin/` — stub-based, for Playground and compat testing only |
 | Where are the tests? | **This repo:** `compat-plugin/tests/` (E2E) + `implementation/CONSOLIDATED/tests/` |
 | Where is the documentation? | **This repo:** `implementation/WOOPTP-155/` + `implementation/CONSOLIDATED/docs/` |
 | Where is the project checklist? | **This repo:** `implementation/PRE-PR-CHECKLIST.md` |
@@ -151,7 +153,7 @@ The `implementation/CONSOLIDATED/` folder is a **point-in-time snapshot** of can
 ## Key Rules
 
 1. **Never push to `Automattic/jetpack`** until every gate is passed and the team is ready for final merge
-2. **All plugin code changes go in `compat-plugin/`** in this repo
+2. **All code changes go in the fork** — this repo is for documentation, planning, and demo harness only
 3. **Update Linear after every task** — tickets must reflect current status at all times
 4. **Default to Production** — never default to Sandbox in any code or documentation
 5. **Frame Jarred/PayPal items as "Andrew to confirm with Jarred"** — not generic suggestions
