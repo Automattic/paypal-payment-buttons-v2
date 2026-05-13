@@ -30,6 +30,9 @@ class PayPal_Payment_Buttons {
 	 */
 	public const PAYPAL_PARTNER_ATTRIBUTION_ID = 'WooNCPS_Ecom_Wordpress';
 
+	const PAYMENT_LINK_PRODUCTION_URL = 'https://www.paypal.com/ncp/payment/';
+	const PAYMENT_LINK_SANDBOX_URL    = 'https://www.sandbox.paypal.com/ncp/payment/';
+
 	/**
 	 * Validates and sanitizes a script URL to ensure it's from an allowed PayPal domain.
 	 *
@@ -490,7 +493,7 @@ class PayPal_Payment_Buttons {
 
 			$payment_id          = esc_attr( $hosted_button_id );
 			$button_text_escaped = esc_attr( $button_text );
-			$action_url          = esc_url( 'https://www.paypal.com/ncp/payment/' . $payment_id . '?at_code=' . self::PAYPAL_PARTNER_ATTRIBUTION_ID );
+			$action_url          = esc_url( self::get_payment_link_base_url() . $payment_id . '?at_code=' . self::PAYPAL_PARTNER_ATTRIBUTION_ID );
 
 			$button_html = sprintf(
 				'<style>.pp-%1$s{text-align:center;border:none;border-radius:0.25rem;min-width:11.625rem;padding:0 2rem;height:2.625rem;font-weight:bold;background-color:#FFD140;color:#000000;font-family:"Helvetica Neue",Arial,sans-serif;font-size:1rem;line-height:1.25rem;cursor:pointer;}</style>
@@ -558,6 +561,17 @@ class PayPal_Payment_Buttons {
 	public static function add_style_display( array $safe_styles ): array {
 		$safe_styles[] = 'display';
 		return $safe_styles;
+	}
+
+	/**
+	 * Get the PayPal payment link base URL for the current environment.
+	 *
+	 * @return string The base URL for payment links (no trailing slash omitted — includes trailing slash).
+	 */
+	private static function get_payment_link_base_url() {
+		return 'production' === PayPal_OAuth::get_environment()
+			? self::PAYMENT_LINK_PRODUCTION_URL
+			: self::PAYMENT_LINK_SANDBOX_URL;
 	}
 
 	/**
