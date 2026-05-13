@@ -62,7 +62,7 @@ echo "--- Syncing PHP source ---"
 for f in class-paypal-payment-buttons.php class-paypal-oauth.php class-paypal-api-client.php \
          class-paypal-attribute-mapper.php class-paypal-rest-controller.php class-paypal-admin-page.php \
          class-paypal-email-sender.php class-paypal-payment-links-list-table.php \
-         class-paypal-partner-onboarding.php; do
+         class-paypal-partner-onboarding.php class-paypal-tracks.php; do
 	[ -f "$JETPACK_SRC/$f" ] && cp "$JETPACK_SRC/$f" "$COMPAT/src/paypal-payment-buttons/$f"
 done
 cp "$JETPACK_SRC/block.json" "$COMPAT/src/paypal-payment-buttons/block.json"

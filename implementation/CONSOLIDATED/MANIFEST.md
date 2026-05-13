@@ -18,6 +18,7 @@ Each file is the canonical final version: the highest-numbered ticket that last 
 | `php/class-paypal-api-client.php` | WOOPTP-151 | Includes retry logic, URL domain whitelist, BN code via `at_code` query param |
 | `php/class-paypal-attribute-mapper.php` | WOOPTP-148 | Validation, bidirectional mapping, merge logic |
 | `php/class-paypal-payment-buttons.php` | WOOPTP-161 + WOOPTP-167 | WOOPTP-161 base; `register_standalone_script_stubs()` per WOOPTP-167; theme-native checkout button (2026-03-26) — removed PayPal logo SVG, debit button, `get_paypal_logo_svg()` method; uses `wp-element-button`; default "Buy Now" |
+| `php/class-paypal-tracks.php` | WOOPTP-194 | Tracks analytics helper — wraps `Automattic\Jetpack\Tracking` server-side, inline `_tkq` push for frontend renders; graceful no-op in standalone mode |
 
 ---
 
@@ -32,6 +33,7 @@ Each file is the canonical final version: the highest-numbered ticket that last 
 | `js/paypal-button-preview.js` | WOOPTP-156 | Product card preview; neutral checkout button, removed PayPal logo and debit button (2026-03-26) |
 | ~~`js/paypal-logo.js`~~ | — | **Deleted 2026-03-26** — orphaned after PayPal branding removed from button |
 | `js/validation.js` | WOOPTP-153 | Extracted validation module (testable) |
+| `js/tracks.js` | WOOPTP-194 | Tracks analytics helper — pushes events to `window._tkq`, safe no-op when Tracks unavailable |
 | `js/webpack.config.blocks.js` | WOOPTP-161 | Webpack build config |
 
 ---
@@ -63,6 +65,7 @@ Each file is the canonical final version: the highest-numbered ticket that last 
 | `tests/php/PayPal_Attribute_Mapper_Test.php` | WOOPTP-153 | 30 | Validation, bidirectional mapping, merge, resource ID format |
 | `tests/php/PayPal_REST_Controller_Test.php` | WOOPTP-153 | 17 | Permission checks, input validation, error normalization |
 | `tests/php/PayPal_API_Client_Retry_Test.php` | WOOPTP-153 | 16 | Retry logic, backoff, 403 auth retry, timeout detection |
+| `tests/php/PayPal_Tracks_Test.php` | WOOPTP-194 | 5 | Graceful no-op guarantee for record_event + enqueue_scripts; empty event-name guard |
 
 ---
 
@@ -71,6 +74,7 @@ Each file is the canonical final version: the highest-numbered ticket that last 
 | File | Source Ticket | Tests | Covers |
 |------|--------------|-------|--------|
 | `tests/js/validation.test.js` | WOOPTP-153 | 16 | `validatePrice`, `validateProductName`, `validateDescription`, error mapping |
+| `tests/js/tracks.test.js` | WOOPTP-194 | 6 | `recordEvent` push semantics, `jetpack_` prefix enforcement, error swallowing |
 | `tests/js/paypal-button-preview.test.js` | WOOPTP-153 | 11 | Product card rendering, currency formatting, layout variants |
 | `tests/js/save.test.js` | WOOPTP-153 | 6 | API-managed, legacy, stacked/single, empty fallback |
 | `tests/js/deprecated.test.js` | WOOPTP-153 | 8 | `isEligible` detection, `migrate` transformation, deprecated markup |

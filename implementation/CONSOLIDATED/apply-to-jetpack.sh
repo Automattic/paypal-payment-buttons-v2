@@ -39,7 +39,7 @@ echo ""
 # PHP source files → src/paypal-payment-buttons/
 # ---------------------------------------------------------------
 echo "--- PHP source files ---"
-for f in class-paypal-oauth.php class-paypal-rest-controller.php class-paypal-api-client.php class-paypal-attribute-mapper.php class-paypal-payment-buttons.php class-paypal-admin-page.php class-paypal-payment-links-list-table.php class-paypal-email-sender.php class-paypal-partner-onboarding.php; do
+for f in class-paypal-oauth.php class-paypal-rest-controller.php class-paypal-api-client.php class-paypal-attribute-mapper.php class-paypal-payment-buttons.php class-paypal-admin-page.php class-paypal-payment-links-list-table.php class-paypal-email-sender.php class-paypal-partner-onboarding.php class-paypal-tracks.php; do
 	cp -v "$CONSOLIDATED/php/$f" "$BLOCK_SRC/$f"
 done
 
@@ -48,7 +48,7 @@ done
 # ---------------------------------------------------------------
 echo ""
 echo "--- JS source files ---"
-for f in edit.js save.js deprecated.js index.js paypal-button-preview.js validation.js variant-builder.js icon.js qr-code.js currency-symbols.js editor.js shipping-panel.js paypal-logo.js; do
+for f in edit.js save.js deprecated.js index.js paypal-button-preview.js validation.js variant-builder.js icon.js qr-code.js currency-symbols.js editor.js shipping-panel.js paypal-logo.js tracks.js; do
 	cp -v "$CONSOLIDATED/js/$f" "$BLOCK_SRC/$f"
 done
 
