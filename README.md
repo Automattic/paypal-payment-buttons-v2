@@ -1,8 +1,9 @@
 # PayPal Payment Buttons V2 — Implementation Repository
 
-Pre-integration implementation for the PayPal Payment Buttons V2 API-driven flow. This repo contains the full implementation organized by Linear issue, ready for integration into the Jetpack monorepo.
+Pre-launch implementation workspace for the PayPal Payment Buttons V2 API-driven flow. This repo contains the full plugin source (as a standalone `compat-plugin`) plus per-ticket implementation archives organized by Linear issue. The plugin has not yet shipped — target is WordCamp EU via Jetpack and as a standalone plugin.
 
-**Target:** WordCamp Asia (April 2026) / Jetpack 15.7
+**Status:** Pre-launch — pending Jetpack monorepo integration (WOOPTP-159)
+**Target:** WordCamp EU 2026
 **Package:** `automattic/jetpack-paypal-payments`
 **Block:** `jetpack/paypal-payment-buttons`
 
@@ -43,10 +44,10 @@ Published Page → PayPal-branded button → PayPal Checkout
 | WOOPTP-153 | Unit tests (PHPUnit + Jest) | Done |
 | WOOPTP-154 | E2E tests (Playwright) | Done |
 | WOOPTP-155 | Documentation | Done |
-| WOOPTP-156 | Security review & hardening | Backlog |
-| WOOPTP-157 | Performance optimization | Backlog |
-| WOOPTP-158 | Accessibility audit | Backlog |
-| WOOPTP-159 | Jetpack monorepo integration | Backlog |
+| WOOPTP-156 | Security review & hardening | Done (PRs #26, #28, #29) |
+| WOOPTP-157 | Performance optimization | Done (PRs #26, #28) |
+| WOOPTP-158 | Accessibility audit | Done (PRs #26, #28) |
+| WOOPTP-159 | Jetpack monorepo integration | Pending |
 | WOOPTP-160 | Fix payment_link HATEOAS extraction | Done |
 | WOOPTP-161 | Align frontend PHP rendering with editor | Done |
 | WOOPTP-162 | Guided credential entry UX | Done |
@@ -55,10 +56,26 @@ Published Page → PayPal-branded button → PayPal Checkout
 | WOOPTP-165 | Pre-request token expiry check | Done |
 | WOOPTP-166 | Fix PayPal SVG block icon | Done |
 | WOOPTP-167 | Standalone script stubs for Playground mode | Done |
+| WOOPTP-267 | Partner Referrals onboarding (Connect with PayPal) | Done (PRs #25, #31) |
+| WOOPTP-279 | Hardcode partner ID + proxy signup link through WPCOM | Done (PR #31) |
+| WOOPTP-194 | Jetpack Tracks event instrumentation | In Progress (PR #33) |
 
 ## Directory Structure
 
 ```
+compat-plugin/
+├── paypal-payment-buttons/
+│   ├── paypal-payment-buttons.php   ← Plugin entry point
+│   ├── readme.txt
+│   ├── src/                         ← PHP + JS source (canonical plugin code)
+│   │   ├── class-paypal-payment-buttons.php
+│   │   └── paypal-payment-buttons/  ← All PHP classes + block files
+│   └── dist/                        ← Built assets (webpack output)
+└── .wp-env.json
+
+compat-results/                      ← WP/PHP compat test matrix results
+└── summary.md
+
 implementation/
 ├── WOOPTP-146/          # OAuth 2.0 — encrypted credential storage, token caching
 │   ├── class-paypal-oauth.php
@@ -115,7 +132,7 @@ implementation/
 │   ├── deprecated.test.js                 (8 tests)
 │   └── PR-DESCRIPTION.md
 │
-├── WOOPTP-154/          # E2E Tests — 18 Playwright tests
+├── WOOPTP-154/          # E2E Tests — Playwright suite
 │   ├── paypal-payment-buttons.spec.js
 │   ├── paypal-api-mock.js
 │   ├── playwright.config.js
@@ -164,14 +181,15 @@ implementation/
 
 - **OAuth:** Credentials stored in `wp_options` with `wp_hash()` integrity protection, transient + absolute-timestamp token caching (WOOPTP-165), pre-validation of Payment Links API access on connect (WOOPTP-164)
 - **API:** PayPal Pay Links & Buttons API (`/v1/checkout/payment-resources`), BN code: `WooNCPS_Ecom_Wordpress`
+- **Onboarding:** Partner Referrals flow via WPCOM proxy (`/api/v1.1/sites/$site_id/paypal/partner-referrals`); partner ID hardcoded as `AUTOMATTIC_SANDBOX_PARTNER_ID` / `AUTOMATTIC_PARTNER_ID`
 - **Retry:** Exponential backoff (1s → 2s → 4s) on 500/502/503, auto token refresh on 401/403
 - **Security:** PayPal URL domain whitelist, server-side + client-side validation, `manage_options` capability checks
-- **Compatibility:** `deprecated.js` handles v0.4.0-alpha → v0.8.0 block migration, no forced migration
-- **Tests:** 154 total (113 PHP + 41 JS unit tests, 18 E2E)
+- **Compatibility:** `deprecated.js` handles v0.4.0-alpha → v0.8.0 block migration, no forced migration; compat-plugin tested on WP 6.5–6.8 / PHP 7.4–8.4
+- **Analytics:** Jetpack Tracks instrumentation in progress (WOOPTP-194, PR #33)
 
 ## Canonical File Versions
 
-When integrating, use the latest version of each file (later issues supersede earlier ones):
+When integrating, use the latest version of each file (later issues supersede earlier ones). The `compat-plugin/paypal-payment-buttons/src/` directory is the current source of truth.
 
 | File | Use from |
 |------|----------|
@@ -196,4 +214,5 @@ When integrating, use the latest version of each file (later issues supersede ea
 
 - `prd-paypal-payment-buttons-v2.md` — Full PRD with scope, timeline, architecture
 - `paypal-pay-links-buttons-api-reference.md` — PayPal API endpoints, schemas, error codes
-- `questions-for-jarred.md` — Open questions for PayPal partnership contact
+- `DEEP-AUDIT-2026-03-27.md` — Deep security/perf/a11y audit findings and resolutions
+- `PLUGINOMATTIC-INTEGRATION-PLAN.md` — Pluginomattic methodology application plan
