@@ -125,12 +125,9 @@ gh release create "$TAG" "$ZIP_PATH" \
 	--notes "Playground-ready release for [WordPress Playground](https://playground.wordpress.net/).
 
 ## What's new
-- Security: postMessage origin validation for Partner Referrals (WOOPTP-271)
-- Fix: variants, taxes, customer notes, and adjustable quantity now pass through to PayPal (WOOPTP-272/276)
-- Security: email rate limiter fix + 50/day cap (WOOPTP-273)
-- Security: OAuth token refresh mutex (WOOPTP-274)
-- Security: seller nonce auto-expires after 30 minutes (WOOPTP-275)
-- Performance: register_hooks() idempotency guard (WOOPTP-277)
+- feat: 3-format switcher — each block now supports Button, Link (URL), or QR code output with a product-first selection flow (WOOPTP-389)
+- feat: Light/Auto/Dark style preset selector with theme inheritance; Auto follows the site theme automatically (WOOPTP-390)
+- feat: Delete confirmation UX — replaces native \`confirm()\` with \`ConfirmDialog\`; no pause/deactivate option per PLB Playbook §2.6 (WOOPTP-393)
 
 ## Try it
 [Open in WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/paypal-payment-buttons-v2/trunk/playground-blueprint.json)"

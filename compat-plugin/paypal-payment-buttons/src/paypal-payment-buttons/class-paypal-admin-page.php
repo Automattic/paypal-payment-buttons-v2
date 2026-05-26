@@ -81,31 +81,19 @@ class PayPal_Admin_Page {
 	}
 
 	/**
-	 * Handle admin actions (delete, create, edit).
+	 * Handle admin actions (delete).
 	 */
 	public static function handle_actions() {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce is verified below per action.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce is verified below.
 		if ( ! isset( $_GET['page'] ) || self::PAGE_SLUG !== sanitize_text_field( wp_unslash( $_GET['page'] ) ) ) {
 			return;
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce is verified below per action.
-		$action = isset( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : '';
-
-		if ( 'delete' === $action ) {
-			self::handle_delete_action();
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce is verified below.
+		if ( ! isset( $_GET['action'] ) || 'delete' !== sanitize_text_field( wp_unslash( $_GET['action'] ) ) ) {
+			return;
 		}
 
-		// Handle create/edit form submissions (POST).
-		if ( 'save' === $action && 'POST' === $_SERVER['REQUEST_METHOD'] ) {
-			self::handle_save_action();
-		}
-	}
-
-	/**
-	 * Handle the delete action.
-	 */
-	private static function handle_delete_action() {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce is verified below.
 		$resource_id = isset( $_GET['resource_id'] ) ? sanitize_text_field( wp_unslash( $_GET['resource_id'] ) ) : '';
 		if ( empty( $resource_id ) ) {
@@ -148,132 +136,6 @@ class PayPal_Admin_Page {
 		}
 
 		wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE_SLUG ) );
-		exit;
-	}
-
-	/**
-	 * Handle create/edit form submission.
-	 */
-	private static function handle_save_action() {
-		if ( ! current_user_can( self::CAPABILITY ) ) {
-			wp_die( esc_html__( 'You do not have permission to perform this action.', 'jetpack-paypal-payments' ) );
-		}
-
-		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ?? '' ) ), 'paypal_save_button' ) ) {
-			wp_die( esc_html__( 'Security check failed.', 'jetpack-paypal-payments' ) );
-		}
-
-		$resource_id = isset( $_POST['resource_id'] ) ? sanitize_text_field( wp_unslash( $_POST['resource_id'] ) ) : '';
-		$is_edit     = ! empty( $resource_id );
-
-		if ( $is_edit && ! PayPal_Attribute_Mapper::is_valid_resource_id( $resource_id ) ) {
-			wp_die( esc_html__( 'Invalid resource ID.', 'jetpack-paypal-payments' ) );
-		}
-
-		// Build attributes from form data.
-		$attributes = array(
-			'productName'        => isset( $_POST['productName'] ) ? sanitize_text_field( wp_unslash( $_POST['productName'] ) ) : '',
-			'price'              => isset( $_POST['price'] ) ? sanitize_text_field( wp_unslash( $_POST['price'] ) ) : '',
-			'currencyCode'       => isset( $_POST['currencyCode'] ) ? sanitize_text_field( wp_unslash( $_POST['currencyCode'] ) ) : 'USD',
-			'productDescription' => isset( $_POST['productDescription'] ) ? sanitize_textarea_field( wp_unslash( $_POST['productDescription'] ) ) : '',
-			'imageUrl'           => isset( $_POST['imageUrl'] ) ? esc_url_raw( wp_unslash( $_POST['imageUrl'] ) ) : '',
-			'returnUrl'          => isset( $_POST['returnUrl'] ) ? esc_url_raw( wp_unslash( $_POST['returnUrl'] ) ) : '',
-			'showQrCode'         => ! empty( $_POST['showQrCode'] ),
-		);
-
-		// Validate.
-		$validation = PayPal_Attribute_Mapper::validate_attributes( $attributes );
-		if ( is_wp_error( $validation ) ) {
-			set_transient(
-				'paypal_admin_notice_' . get_current_user_id(),
-				array(
-					'type'    => 'error',
-					'message' => $validation->get_error_message(),
-				),
-				30
-			);
-			// Store form data for re-population.
-			set_transient( 'paypal_form_data_' . get_current_user_id(), $attributes, 60 );
-
-			$redirect_args = array(
-				'page'   => self::PAGE_SLUG,
-				'action' => $is_edit ? 'edit' : 'create',
-			);
-			if ( $is_edit ) {
-				$redirect_args['resource_id'] = $resource_id;
-			}
-			wp_safe_redirect( add_query_arg( $redirect_args, admin_url( 'admin.php' ) ) );
-			exit;
-		}
-
-		// Convert to API request format.
-		$api_request = PayPal_Attribute_Mapper::attributes_to_api_request( $attributes );
-
-		if ( $is_edit ) {
-			$result = PayPal_API_Client::update_resource( $resource_id, $api_request );
-		} else {
-			$result = PayPal_API_Client::create_resource( $api_request );
-		}
-
-		if ( is_wp_error( $result ) ) {
-			set_transient(
-				'paypal_admin_notice_' . get_current_user_id(),
-				array(
-					'type'    => 'error',
-					'message' => sprintf(
-						/* translators: %s: error message */
-						__( 'Failed to save payment link: %s', 'jetpack-paypal-payments' ),
-						$result->get_error_message()
-					),
-				),
-				30
-			);
-			set_transient( 'paypal_form_data_' . get_current_user_id(), $attributes, 60 );
-
-			$redirect_args = array(
-				'page'   => self::PAGE_SLUG,
-				'action' => $is_edit ? 'edit' : 'create',
-			);
-			if ( $is_edit ) {
-				$redirect_args['resource_id'] = $resource_id;
-			}
-			wp_safe_redirect( add_query_arg( $redirect_args, admin_url( 'admin.php' ) ) );
-			exit;
-		}
-
-		$new_resource_id = $result['id'] ?? $resource_id;
-
-		// Clear both detail and shortcode caches so views are fresh.
-		delete_transient( 'paypal_resource_' . sanitize_key( $new_resource_id ) );
-		delete_transient( 'paypal_btn_' . sanitize_key( $new_resource_id ) );
-
-		$action_label = $is_edit
-			? __( 'Payment link updated successfully.', 'jetpack-paypal-payments' )
-			: sprintf(
-				/* translators: %s: shortcode string */
-				__( 'Payment link created. Shortcode: %s', 'jetpack-paypal-payments' ),
-				'[paypal_button id="' . $new_resource_id . '"]'
-			);
-
-		set_transient(
-			'paypal_admin_notice_' . get_current_user_id(),
-			array(
-				'type'    => 'success',
-				'message' => $action_label,
-			),
-			30
-		);
-
-		wp_safe_redirect(
-			add_query_arg(
-				array(
-					'page'        => self::PAGE_SLUG,
-					'action'      => 'view',
-					'resource_id' => $new_resource_id,
-				),
-				admin_url( 'admin.php' )
-			)
-		);
 		exit;
 	}
 
@@ -459,11 +321,6 @@ class PayPal_Admin_Page {
 				esc_html__( 'Connected', 'jetpack-paypal-payments' ),
 				esc_html( ucfirst( $status['environment'] ?? 'production' ) )
 			);
-			printf(
-				' <a href="%s" class="page-title-action">%s</a>',
-				esc_url( add_query_arg( array( 'page' => self::PAGE_SLUG, 'action' => 'create' ), admin_url( 'admin.php' ) ) ),
-				esc_html__( 'Create New Button', 'jetpack-paypal-payments' )
-			);
 		}
 
 		echo '</div>';
@@ -475,28 +332,11 @@ class PayPal_Admin_Page {
 			return;
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only view parameter.
-		$action = isset( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : '';
-
 		// Detail view (WOOPTP-167).
-		if ( 'view' === $action && ! empty( $_GET['resource_id'] ) ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only view parameter.
+		if ( isset( $_GET['action'] ) && 'view' === sanitize_text_field( wp_unslash( $_GET['action'] ) ) && ! empty( $_GET['resource_id'] ) ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			self::render_detail_view( sanitize_text_field( wp_unslash( $_GET['resource_id'] ) ) );
-			echo '</div>';
-			return;
-		}
-
-		// Create form.
-		if ( 'create' === $action ) {
-			self::render_button_form();
-			echo '</div>';
-			return;
-		}
-
-		// Edit form.
-		if ( 'edit' === $action && ! empty( $_GET['resource_id'] ) ) {
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			self::render_button_form( sanitize_text_field( wp_unslash( $_GET['resource_id'] ) ) );
 			echo '</div>';
 			return;
 		}
@@ -619,20 +459,6 @@ class PayPal_Admin_Page {
 				esc_html__( 'Copy Link', 'jetpack-paypal-payments' )
 			);
 		}
-
-		$edit_url = add_query_arg(
-			array(
-				'page'        => self::PAGE_SLUG,
-				'action'      => 'edit',
-				'resource_id' => $resource_id,
-			),
-			admin_url( 'admin.php' )
-		);
-		printf(
-			'<a href="%s" class="button">%s</a> ',
-			esc_url( $edit_url ),
-			esc_html__( 'Edit', 'jetpack-paypal-payments' )
-		);
 
 		$delete_url = wp_nonce_url(
 			add_query_arg(
@@ -761,22 +587,6 @@ class PayPal_Admin_Page {
 			echo '</div>';
 		}
 
-		// --- Shortcode Card ---
-		$shortcode = '[paypal_button id="' . $resource_id . '"]';
-		echo '<div class="card paypal-detail-card">';
-		printf( '<h3>%s</h3>', esc_html__( 'Embed Shortcode', 'jetpack-paypal-payments' ) );
-		printf(
-			'<p>%s</p>',
-			esc_html__( 'Copy this shortcode to embed this button anywhere — Classic Editor, text widgets, page builders, or any theme template.', 'jetpack-paypal-payments' )
-		);
-		printf(
-			'<p><code class="paypal-detail-link-url">%s</code> <button type="button" class="button paypal-copy-link" data-url="%s">%s</button></p>',
-			esc_html( $shortcode ),
-			esc_attr( $shortcode ),
-			esc_html__( 'Copy Shortcode', 'jetpack-paypal-payments' )
-		);
-		echo '</div>';
-
 		// --- Payment Link Card ---
 		if ( $payment_link ) {
 			echo '<div class="card paypal-detail-card">';
@@ -864,164 +674,6 @@ class PayPal_Admin_Page {
 	}
 
 	/**
-	 * Render the create/edit form for a payment button.
-	 *
-	 * @since 0.13.0
-	 *
-	 * @param string $resource_id Optional. Resource ID for editing an existing button.
-	 */
-	private static function render_button_form( $resource_id = '' ) {
-		$is_edit = ! empty( $resource_id );
-
-		// Breadcrumb.
-		printf(
-			'<p><a href="%s">&larr; %s</a></p>',
-			esc_url( admin_url( 'admin.php?page=' . self::PAGE_SLUG ) ),
-			esc_html__( 'Back to Payment Links', 'jetpack-paypal-payments' )
-		);
-
-		$title = $is_edit
-			? __( 'Edit Payment Button', 'jetpack-paypal-payments' )
-			: __( 'Create Payment Button', 'jetpack-paypal-payments' );
-		printf( '<h2>%s</h2>', esc_html( $title ) );
-
-		// Load form data: from transient (validation error re-populate), API (edit), or defaults (create).
-		$form_data = get_transient( 'paypal_form_data_' . get_current_user_id() );
-		if ( $form_data ) {
-			delete_transient( 'paypal_form_data_' . get_current_user_id() );
-		} elseif ( $is_edit ) {
-			$resource = PayPal_API_Client::get_resource( $resource_id );
-			if ( is_wp_error( $resource ) ) {
-				printf(
-					'<div class="notice notice-error"><p>%s</p></div>',
-					esc_html( $resource->get_error_message() )
-				);
-				return;
-			}
-			$form_data = PayPal_Attribute_Mapper::api_response_to_attributes( $resource );
-		}
-
-		// Defaults.
-		$defaults  = array(
-			'productName'        => '',
-			'price'              => '',
-			'currencyCode'       => 'USD',
-			'productDescription' => '',
-			'imageUrl'           => '',
-			'returnUrl'          => '',
-			'showQrCode'         => true,
-		);
-		$form_data = wp_parse_args( $form_data ?? array(), $defaults );
-
-		$form_url = add_query_arg(
-			array(
-				'page'   => self::PAGE_SLUG,
-				'action' => 'save',
-			),
-			admin_url( 'admin.php' )
-		);
-
-		echo '<div class="card paypal-detail-card">';
-		printf( '<form method="post" action="%s">', esc_url( $form_url ) );
-		wp_nonce_field( 'paypal_save_button' );
-
-		if ( $is_edit ) {
-			printf( '<input type="hidden" name="resource_id" value="%s" />', esc_attr( $resource_id ) );
-		}
-
-		echo '<table class="form-table">';
-
-		// Product Name.
-		printf(
-			'<tr><th scope="row"><label for="productName">%s <span class="required">*</span></label></th>
-			<td><input type="text" id="productName" name="productName" value="%s" class="regular-text" maxlength="127" required />
-			<p class="description">%s</p></td></tr>',
-			esc_html__( 'Product Name', 'jetpack-paypal-payments' ),
-			esc_attr( $form_data['productName'] ),
-			esc_html__( 'Max 127 characters.', 'jetpack-paypal-payments' )
-		);
-
-		// Price.
-		printf(
-			'<tr><th scope="row"><label for="price">%s <span class="required">*</span></label></th>
-			<td><input type="text" id="price" name="price" value="%s" class="regular-text" pattern="[0-9]+(\.[0-9]{1,2})?" required />
-			<p class="description">%s</p></td></tr>',
-			esc_html__( 'Price', 'jetpack-paypal-payments' ),
-			esc_attr( $form_data['price'] ),
-			esc_html__( 'e.g., 29.99', 'jetpack-paypal-payments' )
-		);
-
-		// Currency.
-		$currency_options = '';
-		foreach ( PayPal_Attribute_Mapper::SUPPORTED_CURRENCIES as $code ) {
-			$currency_options .= sprintf(
-				'<option value="%s"%s>%s</option>',
-				esc_attr( $code ),
-				selected( $form_data['currencyCode'], $code, false ),
-				esc_html( $code )
-			);
-		}
-		printf(
-			'<tr><th scope="row"><label for="currencyCode">%s <span class="required">*</span></label></th>
-			<td><select id="currencyCode" name="currencyCode">%s</select></td></tr>',
-			esc_html__( 'Currency', 'jetpack-paypal-payments' ),
-			$currency_options
-		);
-
-		// Description.
-		printf(
-			'<tr><th scope="row"><label for="productDescription">%s</label></th>
-			<td><textarea id="productDescription" name="productDescription" class="large-text" rows="3" maxlength="256">%s</textarea>
-			<p class="description">%s</p></td></tr>',
-			esc_html__( 'Description', 'jetpack-paypal-payments' ),
-			esc_textarea( $form_data['productDescription'] ),
-			esc_html__( 'Optional. Max 256 characters.', 'jetpack-paypal-payments' )
-		);
-
-		// Image URL.
-		printf(
-			'<tr><th scope="row"><label for="imageUrl">%s</label></th>
-			<td><input type="url" id="imageUrl" name="imageUrl" value="%s" class="regular-text" />
-			<p class="description">%s</p></td></tr>',
-			esc_html__( 'Product Image URL', 'jetpack-paypal-payments' ),
-			esc_attr( $form_data['imageUrl'] ),
-			esc_html__( 'Optional. URL to a product image.', 'jetpack-paypal-payments' )
-		);
-
-		// Return URL.
-		printf(
-			'<tr><th scope="row"><label for="returnUrl">%s</label></th>
-			<td><input type="url" id="returnUrl" name="returnUrl" value="%s" class="regular-text" />
-			<p class="description">%s</p></td></tr>',
-			esc_html__( 'Return URL', 'jetpack-paypal-payments' ),
-			esc_attr( $form_data['returnUrl'] ),
-			esc_html__( 'Optional. Where to redirect after payment. Must be HTTPS.', 'jetpack-paypal-payments' )
-		);
-
-		// Show QR Code.
-		printf(
-			'<tr><th scope="row">%s</th>
-			<td><label><input type="checkbox" name="showQrCode" value="1" %s /> %s</label></td></tr>',
-			esc_html__( 'QR Code', 'jetpack-paypal-payments' ),
-			checked( $form_data['showQrCode'], true, false ),
-			esc_html__( 'Show QR code section on the button', 'jetpack-paypal-payments' )
-		);
-
-		echo '</table>';
-
-		$submit_label = $is_edit
-			? __( 'Update Button', 'jetpack-paypal-payments' )
-			: __( 'Create Button', 'jetpack-paypal-payments' );
-
-		printf(
-			'<p class="submit"><input type="submit" class="button button-primary" value="%s" /></p>',
-			esc_attr( $submit_label )
-		);
-
-		echo '</form></div>';
-	}
-
-	/**
 	 * Render a single detail row in a form-table.
 	 *
 	 * @param string $label Row label.
@@ -1060,15 +712,15 @@ class PayPal_Admin_Page {
 	 */
 	private static function render_disconnected_state() {
 		echo '<div class="paypal-disconnected-notice">';
-		printf( '<h2>%s</h2>', esc_html__( 'Connect PayPal to get started', 'jetpack-paypal-payments' ) );
+		printf( '<h2>%s</h2>', esc_html__( 'Connect PayPal to view your payment links', 'jetpack-paypal-payments' ) );
 		printf(
 			'<p>%s</p>',
-			esc_html__( 'Connect your PayPal account to create payment buttons. You can add a PayPal Payment Buttons block in the editor to start the connection flow.', 'jetpack-paypal-payments' )
+			esc_html__( 'Add a PayPal Payment Buttons block in the editor to connect your PayPal account and start creating payment links.', 'jetpack-paypal-payments' )
 		);
 		printf(
 			'<a href="%s" class="button button-primary">%s</a>',
 			esc_url( admin_url( 'post-new.php' ) ),
-			esc_html__( 'Connect via Block Editor', 'jetpack-paypal-payments' )
+			esc_html__( 'Create a Post', 'jetpack-paypal-payments' )
 		);
 		echo '</div>';
 	}

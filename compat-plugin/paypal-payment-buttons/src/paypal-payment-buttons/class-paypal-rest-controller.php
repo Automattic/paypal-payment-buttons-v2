@@ -821,15 +821,15 @@ class PayPal_REST_Controller {
 				'items'       => array(
 					'type'       => 'object',
 					'properties' => array(
-						'name'        => array(
+						'name'                => array(
 							'type'     => 'string',
 							'required' => true,
 						),
-						'description' => array(
+						'description'         => array(
 							'type'     => 'string',
 							'required' => false,
 						),
-						'unit_amount' => array(
+						'unit_amount'         => array(
 							'type'       => 'object',
 							'required'   => true,
 							'properties' => array(
@@ -843,12 +843,12 @@ class PayPal_REST_Controller {
 								),
 							),
 						),
-						'quantity'           => array(
+						'quantity'            => array(
 							'type'     => 'string',
 							'required' => false,
 							'default'  => '1',
 						),
-						'variants'           => array(
+						'variants'            => array(
 							'type'       => 'object',
 							'required'   => false,
 							'properties' => array(
@@ -862,7 +862,7 @@ class PayPal_REST_Controller {
 											'options' => array(
 												'type'  => 'array',
 												'items' => array(
-													'type'       => 'object',
+													'type' => 'object',
 													'properties' => array(
 														'label'       => array( 'type' => 'string' ),
 														'unit_amount' => array(
@@ -887,7 +887,7 @@ class PayPal_REST_Controller {
 								'maximum' => array( 'type' => 'integer' ),
 							),
 						),
-						'customer_notes'     => array(
+						'customer_notes'      => array(
 							'type'     => 'array',
 							'required' => false,
 							'items'    => array(
@@ -898,7 +898,7 @@ class PayPal_REST_Controller {
 								),
 							),
 						),
-						'taxes'              => array(
+						'taxes'               => array(
 							'type'     => 'array',
 							'required' => false,
 							'items'    => array(
