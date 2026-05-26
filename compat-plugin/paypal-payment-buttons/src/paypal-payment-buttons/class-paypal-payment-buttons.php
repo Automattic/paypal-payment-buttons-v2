@@ -196,35 +196,12 @@ class PayPal_Payment_Buttons {
 	}
 
 	/**
-	 * Render an API-managed PayPal payment button on the frontend (block context).
-	 *
-	 * Wraps the shared render_button() output with block wrapper attributes.
+	 * Render an API-managed PayPal payment button on the frontend.
 	 *
 	 * @param array $attributes The block attributes.
 	 * @return string|void The rendered button HTML.
 	 */
 	private static function render_api_managed_button( $attributes ) {
-		$html = self::render_button( $attributes );
-		if ( empty( $html ) ) {
-			return;
-		}
-
-		$wrapper_attributes = get_block_wrapper_attributes();
-		return sprintf( '<div %s>%s</div>', $wrapper_attributes, $html );
-	}
-
-	/**
-	 * Render a PayPal payment button.
-	 *
-	 * Standalone render method that does not depend on the block editor.
-	 * Used by the block renderer, shortcode, and any future integrations.
-	 *
-	 * @since 0.13.0
-	 *
-	 * @param array $attributes The button attributes.
-	 * @return string The rendered button HTML, or empty string on failure.
-	 */
-	public static function render_button( $attributes ) {
 		$resource_id         = $attributes['resourceId'] ?? '';
 		$payment_url         = $attributes['paymentLink'] ?? '';
 		$product_name        = $attributes['productName'] ?? '';
@@ -235,26 +212,92 @@ class PayPal_Payment_Buttons {
 		$variants_enabled    = ! empty( $attributes['variantsEnabled'] );
 		$variants            = $attributes['variants'] ?? null;
 		$show_qr_code        = $attributes['showQrCode'] ?? true;
+		$format              = $attributes['format'] ?? 'BUTTON';
+
+		// Validate — only known format values are accepted.
+		if ( ! in_array( $format, array( 'BUTTON', 'LINK', 'QR' ), true ) ) {
+			$format = 'BUTTON';
+		}
 
 		if ( empty( $resource_id ) || empty( $payment_url ) ) {
-			return '';
+			return;
 		}
 
 		// Validate the payment URL is from a legitimate PayPal domain.
 		$sanitized_payment_url = self::sanitize_paypal_script_url( $payment_url );
 		if ( false === $sanitized_payment_url ) {
-			return '';
+			return;
 		}
 
 		self::register_hooks();
-		if ( $show_qr_code ) {
-			self::enqueue_qr_script();
+
+		// QR script needed for BUTTON (toggle) and QR (standalone) formats.
+		if ( 'LINK' !== $format ) {
+			if ( 'QR' === $format || $show_qr_code ) {
+				self::enqueue_qr_script();
+			}
 		}
 
 		// Append BN code for revenue attribution tracking.
 		$action_url = esc_url(
 			add_query_arg( 'at_code', self::PAYPAL_PARTNER_ATTRIBUTION_ID, $sanitized_payment_url )
 		);
+
+		// ─── LINK format: plain anchor ───────────────────────────────────
+		if ( 'LINK' === $format ) {
+			$wrapper_attributes = get_block_wrapper_attributes();
+			$link_label         = ! empty( $product_name )
+				? $product_name
+				: __( 'Pay with PayPal', 'jetpack-paypal-payments' );
+
+			return sprintf(
+				'<div %1$s><a href="%2$s" class="jetpack-paypal-button__paypal-link" target="_blank" rel="noopener noreferrer">%3$s<span class="screen-reader-text">%4$s</span></a></div>',
+				$wrapper_attributes,
+				$action_url,
+				esc_html( $link_label ),
+				esc_html__( '(opens in a new tab)', 'jetpack-paypal-payments' )
+			);
+		}
+
+		// ─── QR format: standalone auto-rendering QR canvas ──────────────
+		if ( 'QR' === $format ) {
+			$wrapper_attributes = get_block_wrapper_attributes();
+			$download_label     = esc_html__( 'Download QR Code', 'jetpack-paypal-payments' );
+			$copy_label         = esc_html__( 'Copy Link', 'jetpack-paypal-payments' );
+			$copied_label       = esc_attr__( 'Copied!', 'jetpack-paypal-payments' );
+			$product_label      = ! empty( $product_name )
+				? sprintf(
+					'<p class="jetpack-paypal-button__qr-product-name">%s</p>',
+					esc_html( $product_name )
+				)
+				: '';
+
+			return sprintf(
+				'<div %1$s>
+	<div class="jetpack-paypal-button jetpack-paypal-button--qr-format">
+		%2$s
+		<div class="jetpack-paypal-button__qr-standalone">
+			<canvas class="jetpack-paypal-button__qr-canvas jetpack-paypal-button__qr-canvas--standalone" data-qr-url="%3$s"></canvas>
+			<div class="jetpack-paypal-button__qr-link">
+				<input type="text" readonly class="jetpack-paypal-button__qr-link-input" value="%3$s" />
+				<button type="button" class="jetpack-paypal-button__qr-copy" data-copy-label="%4$s" data-copied-label="%5$s">%4$s</button>
+			</div>
+			<button type="button" class="jetpack-paypal-button__qr-download">%6$s</button>
+		</div>
+		<p class="jetpack-paypal-button__attribution">%7$s</p>
+	</div>
+</div>',
+				$wrapper_attributes,
+				$product_label,
+				esc_attr( $action_url ),
+				$copy_label,
+				$copied_label,
+				$download_label,
+				esc_html__( 'Powered by PayPal', 'jetpack-paypal-payments' )
+			);
+		}
+
+		// ─── BUTTON format (default): existing full button card ──────────
 
 		// Product image (WordPress-side only, not sent to PayPal).
 		$image_html = '';
@@ -330,13 +373,13 @@ class PayPal_Payment_Buttons {
 			}
 		}
 
-		// QR code section (conditionally rendered).
+		// QR code toggle section (conditionally rendered for BUTTON format).
 		$qr_html = '';
 		if ( $show_qr_code ) {
 			$qr_show     = esc_attr__( 'Show Link or QR Code', 'jetpack-paypal-payments' );
 			$qr_hide     = esc_attr__( 'Hide Link or QR Code', 'jetpack-paypal-payments' );
 			$qr_download = esc_html__( 'Download QR Code', 'jetpack-paypal-payments' );
-			$copy_label  = esc_html__( 'Copy Link', 'jetpack-paypal-payments' );
+			$copy_label  = esc_attr__( 'Copy Link', 'jetpack-paypal-payments' );
 			$qr_html     = '<div class="jetpack-paypal-button__qr-section">'
 				. '<button type="button" class="jetpack-paypal-button__qr-toggle" data-show-label="' . $qr_show . '" data-hide-label="' . $qr_hide . '" aria-expanded="false">' . $qr_show . '</button>'
 				. '<div class="jetpack-paypal-button__qr-wrapper" style="display:none;">'
@@ -351,10 +394,12 @@ class PayPal_Payment_Buttons {
 				. '</div></div>';
 		}
 
+		$wrapper_attributes = get_block_wrapper_attributes();
+
 		return sprintf(
-			'<div class="wp-block-jetpack-paypal-payment-buttons">
+			'<div %9$s>
 	<div class="jetpack-paypal-button">
-		%9$s
+		%10$s
 		<div class="jetpack-paypal-button__product">
 			<div class="jetpack-paypal-button__product-info">
 				<span class="jetpack-paypal-button__product-name">%1$s</span>
@@ -366,8 +411,8 @@ class PayPal_Payment_Buttons {
 		<div class="jetpack-paypal-button__buttons">
 			<a href="%4$s" class="jetpack-paypal-button__checkout-link wp-element-button" target="_blank" rel="noopener noreferrer">
 				<span class="jetpack-paypal-button__button-text">%5$s</span>
-				%11$s
-				<span class="screen-reader-text">%10$s</span>
+				%12$s
+				<span class="screen-reader-text">%11$s</span>
 			</a>
 		</div>
 		<p class="jetpack-paypal-button__attribution">%6$s</p>
@@ -382,37 +427,11 @@ class PayPal_Payment_Buttons {
 			esc_html__( 'Powered by PayPal', 'jetpack-paypal-payments' ),
 			$variants_html,
 			$qr_html,
+			$wrapper_attributes,
 			$image_html,
 			esc_html__( 'PayPal (opens in a new tab)', 'jetpack-paypal-payments' ),
 			self::get_paypal_logo_svg()
 		);
-	}
-
-	/**
-	 * Enqueue frontend styles for non-block contexts (shortcodes, widgets).
-	 *
-	 * The block system auto-enqueues styles from block.json, but shortcodes
-	 * and other integrations need explicit enqueuing.
-	 *
-	 * @since 0.13.0
-	 * @return void
-	 */
-	public static function enqueue_frontend_styles() {
-		static $enqueued = false;
-		if ( $enqueued ) {
-			return;
-		}
-		$enqueued = true;
-
-		$style_path = PAYPAL_PAYMENT_BUTTONS_DIR . 'dist/paypal-payment-buttons/style.css';
-		if ( file_exists( $style_path ) ) {
-			wp_enqueue_style(
-				'jetpack-paypal-payment-buttons-style',
-				plugins_url( 'dist/paypal-payment-buttons/style.css', PAYPAL_PAYMENT_BUTTONS_ROOT_FILE ),
-				array(),
-				filemtime( $style_path )
-			);
-		}
 	}
 
 	/**
@@ -448,9 +467,8 @@ class PayPal_Payment_Buttons {
 				return;
 			}
 
-			$script_url = esc_url( $sanitized_url );
 			// We can't include the version number here. If we do, it is appended to the URL and causes a 400 response.
-			wp_enqueue_script( 'paypal-payment-buttons-block-head', $script_url, array(), null, false ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
+			wp_enqueue_script( 'paypal-payment-buttons-block-head', $sanitized_url, array(), null, false ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
 			add_filter(
 				'script_loader_tag',
 				function ( $tag, $handle, $src ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable

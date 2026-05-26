@@ -13,7 +13,7 @@
 			"step": "installPlugin",
 			"pluginData": {
 				"resource": "url",
-				"url": "https://github.com/Automattic/paypal-payment-buttons-v2/releases/download/v0.12.2-playground/paypal-payment-buttons-v0.12.2.zip",
+				"url": "https://github.com/Automattic/paypal-payment-buttons-v2/releases/download/v0.13.0-playground/paypal-payment-buttons-v0.13.0.zip",
 				"caption": "Installing PayPal Payment Buttons"
 			},
 			"options": {
@@ -39,7 +39,7 @@
 			"step": "setSiteOptions",
 			"options": {
 				"blogname": "PayPal Payment Buttons V2 Demo",
-				"blogdescription": "WordCamp Asia 2026 — Jetpack 15.7 Preview (v0.12.2)",
+				"blogdescription": "PayPal Payment Buttons V2 — Jetpack 15.8 Preview (v0.13.0)",
 				"permalink_structure": "/%year%/%monthnum%/%day%/%postname%/"
 			}
 		},
