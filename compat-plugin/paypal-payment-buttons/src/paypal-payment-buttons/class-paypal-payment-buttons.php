@@ -232,10 +232,8 @@ class PayPal_Payment_Buttons {
 		self::register_hooks();
 
 		// QR script needed for BUTTON (toggle) and QR (standalone) formats.
-		if ( 'LINK' !== $format ) {
-			if ( 'QR' === $format || $show_qr_code ) {
-				self::enqueue_qr_script();
-			}
+		if ( 'LINK' !== $format && ( 'QR' === $format || $show_qr_code ) ) {
+			self::enqueue_qr_script();
 		}
 
 		// Append BN code for revenue attribution tracking.
@@ -243,10 +241,12 @@ class PayPal_Payment_Buttons {
 			add_query_arg( 'at_code', self::PAYPAL_PARTNER_ATTRIBUTION_ID, $sanitized_payment_url )
 		);
 
+		// Every format wraps its markup with the same block attributes.
+		$wrapper_attributes = get_block_wrapper_attributes();
+
 		// ─── LINK format: plain anchor ───────────────────────────────────
 		if ( 'LINK' === $format ) {
-			$wrapper_attributes = get_block_wrapper_attributes();
-			$link_label         = ! empty( $product_name )
+			$link_label = ! empty( $product_name )
 				? $product_name
 				: __( 'Pay with PayPal', 'jetpack-paypal-payments' );
 
@@ -261,11 +261,8 @@ class PayPal_Payment_Buttons {
 
 		// ─── QR format: standalone auto-rendering QR canvas ──────────────
 		if ( 'QR' === $format ) {
-			$wrapper_attributes = get_block_wrapper_attributes();
-			$download_label     = esc_html__( 'Download QR Code', 'jetpack-paypal-payments' );
-			$copy_label         = esc_html__( 'Copy Link', 'jetpack-paypal-payments' );
-			$copied_label       = esc_attr__( 'Copied!', 'jetpack-paypal-payments' );
-			$product_label      = ! empty( $product_name )
+			$download_label = esc_html__( 'Download QR Code', 'jetpack-paypal-payments' );
+			$product_label  = ! empty( $product_name )
 				? sprintf(
 					'<p class="jetpack-paypal-button__qr-product-name">%s</p>',
 					esc_html( $product_name )
@@ -278,20 +275,16 @@ class PayPal_Payment_Buttons {
 		%2$s
 		<div class="jetpack-paypal-button__qr-standalone">
 			<canvas class="jetpack-paypal-button__qr-canvas jetpack-paypal-button__qr-canvas--standalone" data-qr-url="%3$s"></canvas>
-			<div class="jetpack-paypal-button__qr-link">
-				<input type="text" readonly class="jetpack-paypal-button__qr-link-input" value="%3$s" />
-				<button type="button" class="jetpack-paypal-button__qr-copy" data-copy-label="%4$s" data-copied-label="%5$s">%4$s</button>
-			</div>
-			<button type="button" class="jetpack-paypal-button__qr-download">%6$s</button>
+			%4$s
+			<button type="button" class="jetpack-paypal-button__qr-download">%5$s</button>
 		</div>
-		<p class="jetpack-paypal-button__attribution">%7$s</p>
+		<p class="jetpack-paypal-button__attribution">%6$s</p>
 	</div>
 </div>',
 				$wrapper_attributes,
 				$product_label,
 				esc_attr( $action_url ),
-				$copy_label,
-				$copied_label,
+				self::render_qr_copy_link( $action_url ),
 				$download_label,
 				esc_html__( 'Powered by PayPal', 'jetpack-paypal-payments' )
 			);
@@ -379,22 +372,16 @@ class PayPal_Payment_Buttons {
 			$qr_show     = esc_attr__( 'Show Link or QR Code', 'jetpack-paypal-payments' );
 			$qr_hide     = esc_attr__( 'Hide Link or QR Code', 'jetpack-paypal-payments' );
 			$qr_download = esc_html__( 'Download QR Code', 'jetpack-paypal-payments' );
-			$copy_label  = esc_attr__( 'Copy Link', 'jetpack-paypal-payments' );
 			$qr_html     = '<div class="jetpack-paypal-button__qr-section">'
 				. '<button type="button" class="jetpack-paypal-button__qr-toggle" data-show-label="' . $qr_show . '" data-hide-label="' . $qr_hide . '" aria-expanded="false">' . $qr_show . '</button>'
 				. '<div class="jetpack-paypal-button__qr-wrapper" style="display:none;">'
 				. '<div class="jetpack-paypal-button__qr-content">'
 				. '<canvas class="jetpack-paypal-button__qr-canvas"></canvas>'
-				. '<div class="jetpack-paypal-button__qr-link">'
-				. '<input type="text" readonly class="jetpack-paypal-button__qr-link-input" value="' . esc_attr( $action_url ) . '" />'
-				. '<button type="button" class="jetpack-paypal-button__qr-copy" data-copy-label="' . $copy_label . '" data-copied-label="' . esc_attr__( 'Copied!', 'jetpack-paypal-payments' ) . '">' . $copy_label . '</button>'
-				. '</div>'
+				. self::render_qr_copy_link( $action_url )
 				. '</div>'
 				. '<button type="button" class="jetpack-paypal-button__qr-download">' . $qr_download . '</button>'
 				. '</div></div>';
 		}
-
-		$wrapper_attributes = get_block_wrapper_attributes();
 
 		return sprintf(
 			'<div %9$s>
@@ -603,6 +590,25 @@ class PayPal_Payment_Buttons {
 		$registered = true;
 
 		add_filter( 'safe_style_css', array( __CLASS__, 'add_style_display' ) );
+	}
+
+	/**
+	 * Render the copy-link affordance (read-only URL field + copy button)
+	 * shared by the standalone QR format and the BUTTON format's QR toggle.
+	 *
+	 * @param string $action_url The PayPal payment URL to copy.
+	 * @return string The copy-link markup.
+	 */
+	private static function render_qr_copy_link( $action_url ) {
+		return sprintf(
+			'<div class="jetpack-paypal-button__qr-link">
+				<input type="text" readonly class="jetpack-paypal-button__qr-link-input" value="%1$s" />
+				<button type="button" class="jetpack-paypal-button__qr-copy" data-copy-label="%2$s" data-copied-label="%3$s">%2$s</button>
+			</div>',
+			esc_attr( $action_url ),
+			esc_attr__( 'Copy Link', 'jetpack-paypal-payments' ),
+			esc_attr__( 'Copied!', 'jetpack-paypal-payments' )
+		);
 	}
 
 	/**

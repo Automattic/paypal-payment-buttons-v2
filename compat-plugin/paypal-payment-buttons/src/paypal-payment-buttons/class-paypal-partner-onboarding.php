@@ -184,9 +184,7 @@ class PayPal_Partner_Onboarding {
 		// Build the tracking ID from the site URL for uniqueness.
 		$tracking_id = 'woo-ncps-' . substr( md5( get_site_url() ), 0, 12 ) . '-' . time();
 
-		$base_url = 'production' === $environment
-			? PayPal_OAuth::PRODUCTION_BASE_URL
-			: PayPal_OAuth::SANDBOX_BASE_URL;
+		$base_url = PayPal_OAuth::get_base_url( $environment );
 
 		$request_body = array(
 			'tracking_id'             => $tracking_id,
