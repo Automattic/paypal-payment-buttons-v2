@@ -196,12 +196,37 @@ class PayPal_Payment_Buttons {
 	}
 
 	/**
-	 * Render an API-managed PayPal payment button on the frontend.
+	 * Render an API-managed PayPal payment button for the block (block context).
+	 *
+	 * Thin wrapper that applies the block's wrapper attributes, then delegates to
+	 * the context-free render_button() core shared with the [paypal_button] shortcode.
 	 *
 	 * @param array $attributes The block attributes.
-	 * @return string|void The rendered button HTML.
+	 * @return string The rendered button HTML, or '' if the attributes are invalid.
 	 */
 	private static function render_api_managed_button( $attributes ) {
+		return self::render_button( $attributes, get_block_wrapper_attributes() );
+	}
+
+	/**
+	 * Render an API-managed PayPal payment button as standalone markup.
+	 *
+	 * Context-free render core shared by the block render callback (which passes the
+	 * block wrapper attributes) and the [paypal_button] shortcode (which relies on the
+	 * default wrapper so the markup still picks up the shared frontend styles).
+	 *
+	 * @param array       $attributes         The button attributes.
+	 * @param string|null $wrapper_attributes Attribute string for the outer <div>. Defaults
+	 *                                        to the block wrapper class for non-block callers.
+	 * @return string The rendered button HTML, or '' if the attributes are invalid.
+	 */
+	public static function render_button( $attributes, $wrapper_attributes = null ) {
+		if ( null === $wrapper_attributes ) {
+			// Non-block context (e.g. the shortcode): apply the block wrapper class
+			// directly so the shared frontend styles still target the markup.
+			$wrapper_attributes = 'class="wp-block-jetpack-paypal-payment-buttons"';
+		}
+
 		$resource_id         = $attributes['resourceId'] ?? '';
 		$payment_url         = $attributes['paymentLink'] ?? '';
 		$product_name        = $attributes['productName'] ?? '';
@@ -220,13 +245,13 @@ class PayPal_Payment_Buttons {
 		}
 
 		if ( empty( $resource_id ) || empty( $payment_url ) ) {
-			return;
+			return '';
 		}
 
 		// Validate the payment URL is from a legitimate PayPal domain.
 		$sanitized_payment_url = self::sanitize_paypal_script_url( $payment_url );
 		if ( false === $sanitized_payment_url ) {
-			return;
+			return '';
 		}
 
 		self::register_hooks();
@@ -240,9 +265,6 @@ class PayPal_Payment_Buttons {
 		$action_url = esc_url(
 			add_query_arg( 'at_code', self::PAYPAL_PARTNER_ATTRIBUTION_ID, $sanitized_payment_url )
 		);
-
-		// Every format wraps its markup with the same block attributes.
-		$wrapper_attributes = get_block_wrapper_attributes();
 
 		// ─── LINK format: plain anchor ───────────────────────────────────
 		if ( 'LINK' === $format ) {
@@ -637,6 +659,34 @@ class PayPal_Payment_Buttons {
 				'enqueue'    => true,
 			)
 		);
+	}
+
+	/**
+	 * Enqueue the block's frontend stylesheet for non-block callers.
+	 *
+	 * Block-rendered buttons receive these styles automatically via block.json's
+	 * `style` handle. The [paypal_button] shortcode renders outside block context,
+	 * so it must enqueue the same stylesheet explicitly. Idempotent.
+	 *
+	 * @since 0.13.0
+	 * @return void
+	 */
+	public static function enqueue_frontend_styles() {
+		static $enqueued = false;
+		if ( $enqueued ) {
+			return;
+		}
+		$enqueued = true;
+
+		$style_path = PAYPAL_PAYMENT_BUTTONS_DIR . 'dist/paypal-payment-buttons/style.css';
+		if ( file_exists( $style_path ) ) {
+			wp_enqueue_style(
+				'jetpack-paypal-payment-buttons-style',
+				plugins_url( 'dist/paypal-payment-buttons/style.css', PAYPAL_PAYMENT_BUTTONS_ROOT_FILE ),
+				array(),
+				filemtime( $style_path )
+			);
+		}
 	}
 
 	/**
