@@ -121,12 +121,17 @@ class PayPal_OAuth {
 	}
 
 	/**
-	 * Get the PayPal API base URL for the current environment.
+	 * Get the PayPal API base URL for a given environment.
 	 *
+	 * @param string|null $environment 'sandbox' or 'production'. Defaults to the stored environment.
 	 * @return string The base URL (no trailing slash).
 	 */
-	public static function get_base_url() {
-		return 'production' === self::get_environment()
+	public static function get_base_url( $environment = null ) {
+		if ( null === $environment ) {
+			$environment = self::get_environment();
+		}
+
+		return 'production' === $environment
 			? self::PRODUCTION_BASE_URL
 			: self::SANDBOX_BASE_URL;
 	}
